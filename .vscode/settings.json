@@ -1,3 +1,4 @@
 {
-    "python.pythonPath": "${workspaceFolder}/.envs/${env:CONDA_ENV}/bin/python"
+    "python.pythonPath": "${workspaceFolder}/.envs/${env:CONDA_ENV}/bin/python",
+    "python.analysis.typeCheckingMode": "basic"
 }
