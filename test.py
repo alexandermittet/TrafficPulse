@@ -1,4 +1,0 @@
-'''
-Print testing
-'''
-print('hello')
