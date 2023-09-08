@@ -1,4 +1,4 @@
-"""You need the vscode extenstion "balck formatter" for this to work."""
+"""You need the vscode extenstion "black formatter" for this to work."""
 
 
 def function_name(
