@@ -43,5 +43,3 @@ urllib3 @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_19
 virtualenv==20.24.4
 wrapt==1.15.0
 zstandard @ file:///Users/ec2-user/ci_py311_2/zstandard_1679338593428/work
-
-pre-commit==3.4.0
