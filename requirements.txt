@@ -13,3 +13,4 @@ jupyter_client @ file:///home/conda/feedstock_root/build_artifacts/jupyter_clien
 jupyter_core @ file:///Users/runner/miniforge3/conda-bld/jupyter_core_1686775719487/work
 mypy-extensions==1.0.0
 numpy==1.25.2
+pre-commit==3.4.0
