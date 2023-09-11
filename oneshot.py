@@ -16,7 +16,7 @@ results = model(im)
 results.print()  # or .show(), .save(), .crop(), .pandas(), etc.
 results.xyxy[0]  # im predictions (tensor)
 print("sanity0")
-print(results.xyxy[0])
+print(results.pandas().xyxy[0])
 print("sanity2")
 results.pandas().xyxy[0]  # im predictions (pandas)
 #      xmin    ymin    xmax   ymax  confidence  class    name
@@ -27,3 +27,48 @@ results.pandas().xyxy[0]  # im predictions (pandas)
 results.pandas().xyxy[0].value_counts("name")  # class counts (pandas)
 # person    2
 # tie       1
+
+
+res1 = results.pandas().xyxy[0]
+
+import matplotlib.pyplot as plt
+import cv2
+
+# Read the image using OpenCV
+image = cv2.imread(im)
+image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  # Convert to RGB
+
+# Create a Matplotlib figure
+plt.figure()
+
+# Display the image
+plt.imshow(image_rgb)
+
+# Extract bounding box coordinates from the results
+for index, row in res1.iterrows():
+    xmin, ymin, xmax, ymax = row["xmin"], row["ymin"], row["xmax"], row["ymax"]
+    label = row["name"]
+
+    # Plot rectangle around the object
+    plt.gca().add_patch(
+        plt.Rectangle(
+            (xmin, ymin),
+            xmax - xmin,
+            ymax - ymin,
+            linewidth=1,
+            edgecolor="r",
+            facecolor="none",
+        )
+    )
+
+    # Plot center of the bounding box
+    center_x, center_y = (xmin + xmax) / 2, (ymin + ymax) / 2
+    plt.plot(center_x, center_y, marker="o", color="r", label=f"{label} center")
+
+    # Annotate the center
+    plt.text(
+        center_x, center_y, f"{label}", fontsize=12, ha="right", va="bottom", color="r"
+    )
+
+# Save the plot
+plt.savefig("output.png")
