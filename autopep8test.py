@@ -2,7 +2,7 @@
 
 
 def function_name(
-    input_str: str, another_rgument_thsiiswaytoo_long: str
+    input_str: str, another_rgument_thsiiswaytoo_long: str, more_args: int
 ) -> None:  # See above, it cut the line here
     """Docstring...
 
@@ -19,4 +19,6 @@ def function_name(
         int: Description of return value"""
 
     print("Hello world!" + input_str)
-    print(another_rgument_thsiiswaytoo_long)
+    print(
+        another_rgument_thsiiswaytoo_long
+    )  # commenting the wrong way here and way too long
