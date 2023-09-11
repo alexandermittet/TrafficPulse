@@ -7,7 +7,7 @@ model = torch.hub.load(
 #                                            'custom', 'path/to/best.pt')  # custom model
 
 # Images
-im = "https://ultralytics.com/images/zidane.jpg"  # or file, Path, URL, PIL, OpenCV, numpy, list
+im = "/Users/marcusnsr/Desktop/AoM/Data/Testimg.jpg"  # or file, Path, URL, PIL, OpenCV, numpy, list
 
 # Inference
 results = model(im)
@@ -15,7 +15,9 @@ results = model(im)
 # Results
 results.print()  # or .show(), .save(), .crop(), .pandas(), etc.
 results.xyxy[0]  # im predictions (tensor)
-
+print("sanity0")
+print(results.xyxy[0])
+print("sanity2")
 results.pandas().xyxy[0]  # im predictions (pandas)
 #      xmin    ymin    xmax   ymax  confidence  class    name
 # 0  749.50   43.50  1148.0  704.5    0.874023      0  person
