@@ -1,13 +1,16 @@
 import torch
+import matplotlib.pyplot as plt
+import cv2
 
 # Model
 model = torch.hub.load(
     "ultralytics/yolov5", "yolov5s"
 )  # yolov5n - yolov5x6 official model
-#                                            'custom', 'path/to/best.pt')  # custom model
+# 'custom', 'path/to/best.pt')  # custom model
 
 # Images
-im = "/Users/marcusnsr/Desktop/AoM/Data/Testimg.jpg"  # or file, Path, URL, PIL, OpenCV, numpy, list
+im = "/Users/marcusnsr/Desktop/AoM/Data/Testimg.jpg"
+# or file, Path, URL, PIL, OpenCV, numpy, list
 
 # Inference
 results = model(im)
@@ -31,8 +34,6 @@ results.pandas().xyxy[0].value_counts("name")  # class counts (pandas)
 
 res1 = results.pandas().xyxy[0]
 
-import matplotlib.pyplot as plt
-import cv2
 
 # Read the image using OpenCV
 image = cv2.imread(im)
@@ -67,8 +68,14 @@ for index, row in res1.iterrows():
 
     # Annotate the center
     plt.text(
-        center_x, center_y, f"{label}", fontsize=12, ha="right", va="bottom", color="r"
+        center_x,
+        center_y,
+        f"{label}",
+        fontsize=12,
+        ha="right",
+        va="bottom",
+        color="r",
     )
 
 # Save the plot
-plt.savefig("output.png")
+plt.savefig("Data/output/output.png")
