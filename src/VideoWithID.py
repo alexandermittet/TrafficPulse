@@ -1,11 +1,12 @@
 import torch
 import cv2
 import pandas as pd
+import time
 
 
 def load_model():
     """Load the YOLOv5 model from ultralytics repository."""
-    return torch.hub.load("ultralytics/yolov5", "yolov5n")
+    return torch.hub.load("ultralytics/yolov5", "yolov5s")
 
 
 def perform_inference(model, frame):
@@ -72,11 +73,19 @@ if __name__ == "__main__":
             print("Stream ended.")
             break
 
+        # Start the timer
+        start_time = time.time()
+
         # Perform inference on the current frame
         results = perform_inference(model, frame)
 
         # Draw bounding boxes and labels on the frame
         draw_results(frame, results)
+
+        # End the timer and calculate latency
+        end_time = time.time()
+        latency = (end_time - start_time) * 1000  # Convert time to milliseconds
+        print(f"Frame processed in {latency:.2f} ms")
 
         # Write the frame to the output video
         out.write(frame)
