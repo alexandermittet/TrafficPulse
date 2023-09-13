@@ -6,7 +6,7 @@ import time
 
 def load_model():
     """Load the YOLOv5 model from ultralytics repository."""
-    return torch.hub.load("ultralytics/yolov5", "yolov5s")
+    return torch.hub.load("ultralytics/yolov5", "yolov5n")
 
 
 def perform_inference(model, frame):
@@ -85,7 +85,9 @@ if __name__ == "__main__":
         # End the timer and calculate latency
         end_time = time.time()
         latency = (end_time - start_time) * 1000  # Convert time to milliseconds
+        fps = 1 / (end_time - start_time)  # FPS = 1 / time to process frame
         print(f"Frame processed in {latency:.2f} ms")
+        print(f"FPS: {fps:.2f}")
 
         # Write the frame to the output video
         out.write(frame)
