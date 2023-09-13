@@ -6,7 +6,7 @@ import time
 
 def load_model():
     """Load the YOLOv5 model from ultralytics repository."""
-    return torch.hub.load("ultralytics/yolov5", "yolov5n")
+    return torch.hub.load("ultralytics/yolov5", "yolov5s")
 
 
 def perform_inference(model, frame):
@@ -34,16 +34,18 @@ def draw_results(frame, results):
     for index, row in res1.iterrows():
         xmin, ymin, xmax, ymax = row["xmin"], row["ymin"], row["xmax"], row["ymax"]
         label = row["name"]
+        confidence = row["confidence"]  # Get the confidence value
+        cls = row["class"]
 
         # Draw rectangle around the object
         cv2.rectangle(
             frame, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (0, 0, 255), 2
         )
 
-        # Draw label text
+        # Draw label text along with confidence
         cv2.putText(
             frame,
-            f"{label}",
+            f"{label} {confidence:.2f} {cls}",  # Include confidence value to 2 decimal places
             (int(xmin), int(ymin - 5)),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.5,
