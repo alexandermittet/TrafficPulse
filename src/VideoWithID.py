@@ -11,7 +11,7 @@ def load_model():
     Returns:
         torch.nn.Module: The loaded YOLOv5 model.
     """
-    return torch.hub.load("ultralytics/yolov5", "yolov5s")
+    return torch.hub.load("ultralytics/yolov5", "yolov5n")
 
 
 def perform_inference(model, frame):
