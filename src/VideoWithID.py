@@ -2,6 +2,7 @@ import torch
 import cv2
 import pandas as pd
 import time
+from sort import Sort
 
 
 def load_model():
@@ -32,10 +33,13 @@ def draw_results(frame, results):
     """
     res1 = pd.DataFrame(results.pandas().xyxy[0])
     for index, row in res1.iterrows():
+        # Keep all relevant fields
+        detections = res1[
+            ["xmin", "ymin", "xmax", "ymax", "confidence", "class"]
+        ].values
         xmin, ymin, xmax, ymax = row["xmin"], row["ymin"], row["xmax"], row["ymax"]
         label = row["name"]
         confidence = row["confidence"]  # Get the confidence value
-        cls = row["class"]
 
         # Draw rectangle around the object
         cv2.rectangle(
@@ -45,7 +49,7 @@ def draw_results(frame, results):
         # Draw label text along with confidence
         cv2.putText(
             frame,
-            f"{label} {confidence:.2f} {cls}",  # Include confidence value to 2 decimal places
+            f"{label} {confidence:.2f}",  # Include confidence value to 2 decimal places
             (int(xmin), int(ymin - 5)),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.5,
@@ -56,6 +60,7 @@ def draw_results(frame, results):
 
 if __name__ == "__main__":
     model = load_model()
+    mot_tracker = Sort()
 
     # Initialize video capture and output writer
     video_path = "data/video.mp4"
