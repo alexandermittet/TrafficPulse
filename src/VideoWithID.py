@@ -6,7 +6,11 @@ from sort import Sort
 
 
 def load_model():
-    """Load the YOLOv5 model from ultralytics repository."""
+    """Load the YOLOv5 model from ultralytics repository.
+
+    Returns:
+        torch.nn.Module: The loaded YOLOv5 model.
+    """
     return torch.hub.load("ultralytics/yolov5", "yolov5s")
 
 
@@ -14,43 +18,46 @@ def perform_inference(model, frame):
     """Perform inference on a frame using the given YOLOv5 model.
 
     Args:
-        model: The YOLOv5 model.
-        frame: The video frame.
+        model (torch.nn.Module): The YOLOv5 model.
+        frame (ndarray): The video frame to perform inference on.
 
     Returns:
-        The inference results.
+        obj: The inference results.
     """
-    results = model(frame)
-    return results
+    return model(frame)
 
 
-def draw_results(frame, results):
+def draw_results(frame, results, tracker):
     """Draw the inference results on the frame.
 
     Args:
-        frame: The video frame.
-        results: The inference results.
+        frame (ndarray): The video frame on which to draw results.
+        results (obj): The inference results to draw.
+        tracker (Sort): The tracker object to update.
     """
-    res1 = pd.DataFrame(results.pandas().xyxy[0])
-    for index, row in res1.iterrows():
-        # Keep all relevant fields
-        detections = res1[
-            ["xmin", "ymin", "xmax", "ymax", "confidence", "class"]
-        ].values
-        xmin, ymin, xmax, ymax = row["xmin"], row["ymin"], row["xmax"], row["ymax"]
-        label = row["name"]
-        confidence = row["confidence"]  # Get the confidence value
+    cur = pd.DataFrame(results.pandas().xyxy[0])
+    name = cur["name"]
+    detections = cur[["xmin", "ymin", "xmax", "ymax", "confidence", "class"]].values
 
-        # Draw rectangle around the object
-        cv2.rectangle(
-            frame, (int(xmin), int(ymin)), (int(xmax), int(ymax)), (0, 0, 255), 2
+    # Update the tracker based on the detected bounding boxes
+    trackers = tracker.update(detections)
+    for track in trackers:
+        xmin, ymin, xmax, ymax, track_id = (
+            int(track[0]),
+            int(track[1]),
+            int(track[2]),
+            int(track[3]),
+            int(track[4]),
         )
 
-        # Draw label text along with confidence
+        # Draw rectangle around the object
+        cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (0, 0, 255), 2)
+
+        # Draw label text along with Track ID
         cv2.putText(
             frame,
-            f"{label} {confidence:.2f}",  # Include confidence value to 2 decimal places
-            (int(xmin), int(ymin - 5)),
+            f"{name[0]} - ID {track_id}",
+            (xmin, ymin - 5),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.5,
             (0, 0, 255),
@@ -59,6 +66,7 @@ def draw_results(frame, results):
 
 
 if __name__ == "__main__":
+    """Main function to load the model, initialize trackers and process a video file."""
     model = load_model()
     mot_tracker = Sort()
 
@@ -87,7 +95,7 @@ if __name__ == "__main__":
         results = perform_inference(model, frame)
 
         # Draw bounding boxes and labels on the frame
-        draw_results(frame, results)
+        draw_results(frame, results, mot_tracker)
 
         # End the timer and calculate latency
         end_time = time.time()
