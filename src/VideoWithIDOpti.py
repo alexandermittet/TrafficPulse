@@ -13,7 +13,7 @@ DOWNSCALE_FACTOR = 2  # Adjust this factor as needed
 
 def load_model():
     """Load the YOLOv5 model from ultralytics repository."""
-    return torch.hub.load("ultralytics/yolov5", "yolov5s")
+    return torch.hub.load("ultralytics/yolov5", "yolov5n")
 
 
 class TrackedObject:
