@@ -4,6 +4,9 @@ import pandas as pd
 import time
 from sort import Sort
 
+### SWITCH TO TRUE IF USING WEBCAM, FALSE IF USING VIDEO FILE ###
+WEBCAM = True  # Set this to True if you want to use a webcam
+
 
 def load_model():
     """Load the YOLOv5 model from ultralytics repository.
@@ -70,9 +73,15 @@ if __name__ == "__main__":
     model = load_model()
     mot_tracker = Sort()
 
-    # Initialize video capture and output writer
-    video_path = "data/video.mp4"
-    cap = cv2.VideoCapture(video_path)
+    if WEBCAM:
+        # Initialize webcam capture
+        cap = cv2.VideoCapture(0)  # Use the default webcam (usually index 0)
+    else:
+        # Initialize video capture
+        video_path = "data/video.mp4"
+        cap = cv2.VideoCapture(video_path)
+
+    # Initialize output writer
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
     out = cv2.VideoWriter(
         "data/output/TestVideoWithBBox.mp4",
@@ -81,7 +90,7 @@ if __name__ == "__main__":
         (int(cap.get(3)), int(cap.get(4))),
     )
 
-    while cap.isOpened():
+    while True:
         ret, frame = cap.read()
 
         if not ret:
