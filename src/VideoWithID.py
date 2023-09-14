@@ -5,7 +5,10 @@ import time
 from sort import Sort
 
 ### SWITCH TO TRUE IF USING WEBCAM, FALSE IF USING VIDEO FILE ###
-WEBCAM = True  # Set this to True if you want to use a webcam
+WEBCAM = False  # Set this to True if you want to use a webcam
+
+# IOU threshold for object tracking
+IOU_THRESHOLD = 0.5
 
 
 def load_model():
@@ -14,35 +17,49 @@ def load_model():
     Returns:
         torch.nn.Module: The loaded YOLOv5 model.
     """
-    return torch.hub.load("ultralytics/yolov5", "yolov5n")
+    return torch.hub.load("ultralytics/yolov5", "yolov5s")
 
 
-def perform_inference(model, frame):
-    """Perform inference on a frame using the given YOLOv5 model.
+def calculate_iou(box1, box2):
+    """Calculate Intersection over Union (IOU) between two bounding boxes.
 
     Args:
-        model (torch.nn.Module): The YOLOv5 model.
-        frame (ndarray): The video frame to perform inference on.
+        box1 (list): [xmin, ymin, xmax, ymax] of the first bounding box.
+        box2 (list): [xmin, ymin, xmax, ymax] of the second bounding box.
 
     Returns:
-        obj: The inference results.
+        float: The IOU value.
     """
-    return model(frame)
+    x1, y1, x2, y2 = box1
+    x3, y3, x4, y4 = box2
+
+    # Calculate intersection area
+    intersectionx1 = max(x1, x3)
+    intersectiony1 = max(y1, y3)
+    intersectionx2 = min(x2, x4)
+    intersectiony2 = min(y2, y4)
+
+    intersection_area = max(0, intersectionx2 - intersectionx1 + 1) * max(
+        0, intersectiony2 - intersectiony1 + 1
+    )
+
+    # Calculate areas of both bounding boxes
+    area_box1 = (x2 - x1 + 1) * (y2 - y1 + 1)
+    area_box2 = (x4 - x3 + 1) * (y4 - y3 + 1)
+
+    # Calculate IOU
+    iou = intersection_area / (area_box1 + area_box2 - intersection_area)
+
+    return iou
 
 
-def draw_results(frame, results, tracker):
-    """Draw the inference results on the frame.
+def update_tracker_with_overlap(tracker, detections):
+    """Update the tracker based on the detected bounding boxes using overlap-based ID assignment.
 
     Args:
-        frame (ndarray): The video frame on which to draw results.
-        results (obj): The inference results to draw.
         tracker (Sort): The tracker object to update.
+        detections (list): List of [xmin, ymin, xmax, ymax, confidence, class] bounding boxes.
     """
-    cur = pd.DataFrame(results.pandas().xyxy[0])
-    name = cur["name"]
-    detections = cur[["xmin", "ymin", "xmax", "ymax", "confidence", "class"]].values
-
-    # Update the tracker based on the detected bounding boxes
     trackers = tracker.update(detections)
     for track in trackers:
         xmin, ymin, xmax, ymax, track_id = (
@@ -59,7 +76,7 @@ def draw_results(frame, results, tracker):
         # Draw label text along with Track ID
         cv2.putText(
             frame,
-            f"{name[0]} - ID {track_id}",
+            f"ID {track_id}",
             (xmin, ymin - 5),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.5,
@@ -78,7 +95,7 @@ if __name__ == "__main__":
         cap = cv2.VideoCapture(0)  # Use the default webcam (usually index 0)
     else:
         # Initialize video capture
-        video_path = "data/video.mp4"
+        video_path = "data/video30s.mp4"
         cap = cv2.VideoCapture(video_path)
 
     # Initialize output writer
@@ -101,10 +118,14 @@ if __name__ == "__main__":
         start_time = time.time()
 
         # Perform inference on the current frame
-        results = perform_inference(model, frame)
+        results = model(frame)
 
-        # Draw bounding boxes and labels on the frame
-        draw_results(frame, results, mot_tracker)
+        # Convert results to a pandas DataFrame
+        cur = pd.DataFrame(results.pandas().xyxy[0])
+        detections = cur[["xmin", "ymin", "xmax", "ymax", "confidence", "class"]].values
+
+        # Update the tracker based on the detected bounding boxes
+        update_tracker_with_overlap(mot_tracker, detections)
 
         # End the timer and calculate latency
         end_time = time.time()
