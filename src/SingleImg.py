@@ -74,7 +74,7 @@ def display_and_save_results(results, image_path):
         )
 
     # Save the plot
-    plt.savefig("data/TestImgWithBBox.png")
+    plt.savefig("data/output/TestImgWithBBox.png")
 
 
 if __name__ == "__main__":
