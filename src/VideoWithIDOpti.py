@@ -7,7 +7,8 @@ from itertools import count
 
 ### SWITCH TO TRUE IF USING WEBCAM, FALSE IF USING VIDEO FILE ###
 WEBCAM = False  # Set this to True if you want to use a webcam
-IOU_THRESHOLD = 0.5  # Adjust this threshold as needed
+IOU_THRESHOLD = 0.4  # Adjust this threshold as needed
+DOWNSCALE_FACTOR = 2  # Adjust this factor as needed
 
 
 def load_model():
@@ -69,8 +70,8 @@ def draw_results(frame, results):
         frame: The video frame.
         results: The inference results.
     """
-    res1 = pd.DataFrame(results.pandas().xyxy[0])
-    for index, row in res1.iterrows():
+    cur = pd.DataFrame(results.pandas().xyxy[0])
+    for index, row in cur.iterrows():
         xmin, ymin, xmax, ymax = row["xmin"], row["ymin"], row["xmax"], row["ymax"]
         label = row["name"]
         cv2.rectangle(
@@ -113,6 +114,11 @@ if __name__ == "__main__":
         if not ret:
             print("Stream ended.")
             break
+
+        # Downscale the frame
+        frame = cv2.resize(
+            frame, None, fx=1 / DOWNSCALE_FACTOR, fy=1 / DOWNSCALE_FACTOR
+        )
 
         # Start the timer
         start_time = time.time()
