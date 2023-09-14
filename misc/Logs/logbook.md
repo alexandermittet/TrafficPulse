@@ -7,3 +7,11 @@
   - Technical:  
     - Sniffing position in py  
     - Plotting positions on img in py  
+
+#### 14. sept 2023
+- Called Aase i KK, handling manual traffic counting
+- Contacted 4 stakeholders on linkedin:
+  - Maja Sig BEstergaard
+  - Steffen Bank
+  - Rebekka Overgaard Birkov
+  - PeterAndreas Rosbak Juhl  
