@@ -32,8 +32,8 @@ def calculate_iou(bbox1, bbox2):
     x3, y3, x4, y4 = bbox2
 
     # Calculate the intersection area
-    x_intersection = max(0, min(x2, x4) - max(x1, x3))
-    y_intersection = max(0, min(y2, y4) - max(y1, y3))
+    x_intersection = max(0, min(int(x2), int(x4)) - max(int(x1), int(x3)))
+    y_intersection = max(0, min(int(y2), int(y4)) - max(int(y1), int(y3)))
     intersection_area = x_intersection * y_intersection
 
     # Calculate the area of each bounding box
