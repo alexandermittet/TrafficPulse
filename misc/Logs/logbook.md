@@ -28,3 +28,8 @@
     - We tried fixing this using and combination of sort and some calculations of the IOU but this only somewhat helped on the problem as the program still ran slow.
     - By doing research and discovering that IOU actually could be used to track an object over multiple frames, we chose to ditch sort and implement our own detection relying only on IOU. We then implemented our own system for assignming ids. This ran much smoother with around 28fps and 30ms processing pr. frame. Without testing but just by observation we saw much better results than using sort as we now expirenced alot less flickering when using the smallest model from YOLOv5 (nano). We also kept the implementation of downscaling as we do not need 4k video to do detection.
   
+#### 15. sept 2023
+  - Technical:
+      - We discovered yolov7 and yolov8.
+      - We successfully implmented yolov7 into our current code but with yolov7 we saw a decrease in performance when running our program.
+      - We are still tring to make yolov8 work with our code as yolov8 works using the ultralytics library
