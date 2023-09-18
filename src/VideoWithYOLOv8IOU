@@ -9,6 +9,7 @@ WEBCAM = False
 DOWNSCALE_FACTOR = 2
 VIDEO_PATH = "/Users/marcusnsr/Desktop/AoM/data/video30s.mp4"
 IOU_THRESHHOLD = 0.5
+MAX_HISTORY = 5
 
 
 # Load the YOLOv8 model
@@ -53,7 +54,7 @@ def annotate_frame(frame, object_ids):
         cv2.putText(
             frame,
             f"ID: {object_id}",
-            (x1, y1 - 10),
+            (x1, y1 - 30),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.5,
             (255, 255, 255),
@@ -63,10 +64,9 @@ def annotate_frame(frame, object_ids):
 
 if __name__ == "__main__":
     # Initialize variables
-    object_ids = defaultdict(int)
-    object_history = defaultdict(list)
-
+    object_ids = {}
     next_object_id = 1
+    object_history = defaultdict(list)
 
     # Load the YOLOv8 model
     model = load_model()
@@ -86,29 +86,57 @@ if __name__ == "__main__":
         if success:
             results = perform_inference(model, frame)
 
-            # Initialize a dictionary to store the best match for each object
-            best_matches = {}
+            current_object_ids = {}  # For storing current frame detections
 
             for r in results:
                 boxes = r.boxes.xyxy  # Get bounding boxes in xyxy format
                 for box in boxes:
                     best_iou = 0
                     best_object_id = None
+                    best_prediction = None
 
                     for object_id, last_box in object_ids.items():
                         iou = calculate_iou(box, last_box)
-                        if iou > best_iou:
+
+                        # Predict future box based on history
+                        history = object_history[object_id]
+                        if len(history) > 1:
+                            dx = history[-1][0] - history[-2][0]
+                            dy = history[-1][1] - history[-2][1]
+                            predicted_box = [
+                                last_box[0] + dx,
+                                last_box[1] + dy,
+                                last_box[2] + dx,
+                                last_box[3] + dy,
+                            ]
+                            prediction_iou = calculate_iou(box, predicted_box)
+
+                            if prediction_iou > best_iou:
+                                best_iou = prediction_iou
+                                best_object_id = object_id
+                                best_prediction = predicted_box
+
+                        elif iou > best_iou:
                             best_iou = iou
                             best_object_id = object_id
 
                     if best_iou > IOU_THRESHHOLD:
-                        best_matches[best_object_id] = box
+                        current_object_ids[best_object_id] = box
                     else:
-                        best_matches[next_object_id] = box
+                        current_object_ids[next_object_id] = box
                         next_object_id += 1
 
-            # Update the last known position for each object
-            object_ids.update(best_matches)
+                    # Update the object's history
+                    if best_object_id is not None:
+                        history = object_history[best_object_id]
+                        history.append(
+                            box[:2]
+                        )  # Store only the top-left corner for simplicity
+                        if len(history) > MAX_HISTORY:
+                            del history[0]
+
+            # Update the object ids
+            object_ids = current_object_ids
 
             # Visualize the results on the frame
             annotated_frame = results[0].plot()
