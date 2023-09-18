@@ -33,3 +33,9 @@
       - We discovered yolov7 and yolov8.
       - We successfully implmented yolov7 into our current code but with yolov7 we saw a decrease in performance when running our program.
       - We are still tring to make yolov8 work with our code as yolov8 works using the ultralytics library
+
+#### 18. sept 2023
+- IRL:
+  - We have called Steffen from Movia about getting in contact with relevant people to do the mom test. We gave us an email to a person called Jakob Bommersholdt which we could call and talk to.
+- Technical:
+  - We have begun working on a test set such that when we change code to optimzie it we know if it will have an effect on the over all accuracy. This will also help us eliminate overfitting to a single video. The way we have done this is by manually annotating a video using RoboFlow. 
