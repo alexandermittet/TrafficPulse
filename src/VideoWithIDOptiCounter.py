@@ -37,7 +37,7 @@ class TrackedObject:
             counted: Flag to indicate if this object has been counted.
             history: Store the history of mid-points of the bounding box.
             label_history: Store the last n labels.
-            
+         """
         self.bbox = bbox
         self.label = label
         self.id = next(id_counter)
