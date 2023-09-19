@@ -43,3 +43,6 @@
 #### 19. sept 2023
 - Technical:
     - Current got yolov8 working with id assignment using iou, but currently we still expirence id switching, so currently we are trying to see if we expirence a decreses in id switches.
+- IRL:
+  - Meeting with Jakub, giving status and discussing our how, pitch. Jakub mentioned some other ideas that our technology could be used for, e.g. animal tracking (birds, wila boars, even farm animals in cages).
+  - Discussed possibility for exam date postponing. JR said sure, but that the other people on the contract needed to confirm aswell.
