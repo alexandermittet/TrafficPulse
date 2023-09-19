@@ -37,7 +37,7 @@ class TrackedObject:
             counted: Flag to indicate if this object has been counted.
             history: Store the history of mid-points of the bounding box.
             label_history: Store the last n labels.
-         """
+        """
         self.bbox = bbox
         self.label = label
         self.id = next(id_counter)
@@ -302,7 +302,7 @@ if __name__ == "__main__":
 
         # Display the frame
         cv2.imshow("YOLOv5 with Object Tracking", frame)
-        
+
         # Break the loop if 'q' is pressed
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
