@@ -9,6 +9,7 @@ from itertools import count
 WEBCAM = False  # Set this to True if you want to use a webcam, False for a video file
 IOU_THRESHOLD = 0.3  # Intersection-over-Union threshold for object tracking
 DOWNSCALE_FACTOR = 2  # Factor by which the video frame will be downscaled
+VIDEO_PATH = "data/video30s.mp4"  # Path to video file if using a video file
 
 # Initialize global ID counter for TrackedObjects
 id_counter = count(1)
@@ -36,7 +37,7 @@ class TrackedObject:
             counted: Flag to indicate if this object has been counted.
             history: Store the history of mid-points of the bounding box.
             label_history: Store the last n labels.
-        """
+            
         self.bbox = bbox
         self.label = label
         self.id = next(id_counter)
@@ -54,6 +55,9 @@ class TrackedObject:
     def get_persistent_label(self):
         """
         Update the bounding box and label of the object.
+
+        Returns:
+        Most common label.
         """
         return Counter(self.label_history).most_common(1)[0][0]
 
@@ -93,7 +97,7 @@ def perform_inference(model, frame):
         frame: Video frame.
 
     Returns:
-        Inference results.
+        Inference results (prediction on each frame).
     """
     results = model(frame)
     return results
@@ -125,7 +129,6 @@ def draw_results(frame, results):
         )
 
 
-# Main code execution starts here
 if __name__ == "__main__":
     model = load_model()  # Load the YOLOv5 model
 
@@ -133,7 +136,7 @@ if __name__ == "__main__":
     if WEBCAM:
         cap = cv2.VideoCapture(0)  # Use the default webcam (usually index 0)
     else:
-        video_path = "data/video30s.mp4"
+        video_path = VIDEO_PATH
         cap = cv2.VideoCapture(video_path)
 
     # Original dimensions
@@ -299,7 +302,7 @@ if __name__ == "__main__":
 
         # Display the frame
         cv2.imshow("YOLOv5 with Object Tracking", frame)
-
+        
         # Break the loop if 'q' is pressed
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
