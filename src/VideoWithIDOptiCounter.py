@@ -33,7 +33,11 @@ class TrackedObject:
         Args:
             bbox: Bounding box coordinates [xmin, ymin, xmax, ymax].
             label: Label of the object.
-        """
+            id_counter: Counter for assigning unique IDs to TrackedObjects.
+            counted: Flag to indicate if this object has been counted.
+            history: Store the history of mid-points of the bounding box.
+            label_history: Store the last n labels.
+            
         self.bbox = bbox
         self.label = label
         self.id = next(id_counter)
@@ -286,12 +290,6 @@ if __name__ == "__main__":
                 1,
             )
 
-        # Write the frame to the output video
-        out.write(frame)
-
-        # Display the frame
-        cv2.imshow("YOLOv5 with Object Tracking", frame)
-
         # End the timer and calculate latency
         end_time = time.time()
         latency = (end_time - start_time) * 1000
@@ -299,6 +297,12 @@ if __name__ == "__main__":
         print(f"Frame processed in {latency:.2f} ms")
         print(f"FPS: {fps:.2f}")
 
+        # Write the frame to the output video
+        out.write(frame)
+
+        # Display the frame
+        cv2.imshow("YOLOv5 with Object Tracking", frame)
+        
         # Break the loop if 'q' is pressed
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break
