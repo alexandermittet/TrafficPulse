@@ -48,3 +48,5 @@
 - IRL:
   - Meeting with Jakub, giving status and discussing our how, pitch. Jakub mentioned some other ideas that our technology could be used for, e.g. animal tracking (birds, wila boars, even farm animals in cages).
   - Discussed possibility for exam date postponing. JR said sure, but that the other people on the contract needed to confirm aswell.
+  - We contacted; Sidsel (KK)
+  - We recived a 35 page manual of trafficcounting in KBH from Åse.
