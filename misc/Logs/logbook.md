@@ -43,6 +43,8 @@
 #### 19. sept 2023
 - Technical:
     - Current got yolov8 working with id assignment using iou, but currently we still expirence id switching, so currently we are trying to see if we expirence a decreses in id switches.
+    - Tried to make yolov8 work with deepsort for tracking. We made it work with displaying the ids but the bounding boxes where not in the correct sizes and we didnt really see any improvement.
+    - We then discovered a repo with a library called ByteTrack. We made version that uses yolov8 with bytetracker to track objects across frames. We saw a huge improvement in the flicker and tracking of objects. One thing to mention is that we need to find a way to reset the ids after each run and make it work with an external webcam. Later on we need to add our allready developed line counter to this program.
 - IRL:
   - Meeting with Jakub, giving status and discussing our how, pitch. Jakub mentioned some other ideas that our technology could be used for, e.g. animal tracking (birds, wila boars, even farm animals in cages).
   - Discussed possibility for exam date postponing. JR said sure, but that the other people on the contract needed to confirm aswell.
