@@ -50,3 +50,8 @@
   - Discussed possibility for exam date postponing. JR said sure, but that the other people on the contract needed to confirm aswell.
   - We contacted; Sidsel (KK)
   - We recived a 35 page manual of trafficcounting in KBH from Åse.
+
+#### 21. sept 2023
+- Technical:
+  - Implemented line counter to the yolov8 model with ByteTracker
+  - Working on tracking cars based on color and using area for determening if the cars is moving closer or away from the camera
