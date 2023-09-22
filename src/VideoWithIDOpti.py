@@ -5,10 +5,13 @@ import time
 from collections import deque
 from itertools import count
 
-### SWITCH TO TRUE IF USING WEBCAM, FALSE IF USING VIDEO FILE ###
-WEBCAM = False  # Set this to True if you want to use a webcam
-IOU_THRESHOLD = 0.4  # Adjust this threshold as needed
-DOWNSCALE_FACTOR = 2  # Adjust this factor as needed
+import constants.constants as const
+
+# LOADED FROM constants.py:
+# ### SWITCH TO TRUE IF USING WEBCAM, FALSE IF USING VIDEO FILE ###
+# WEBCAM = False  # Set this to True if you want to use a webcam
+# IOU_THRESHOLD = 0.4  # Adjust this threshold as needed
+# DOWNSCALE_FACTOR = 2  # Adjust this factor as needed
 
 
 def load_model():
@@ -81,27 +84,26 @@ def draw_results(frame, results):
             frame,
             f"{label}",
             (int(xmin), int(ymin - 5)),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.5,
-            (0, 0, 255),
-            1,
+            const.FONT,  # Font type
+            const.FONT_SIZE,  # Font size
+            const.TEXT_COLOR,  # Text color (in BGR format)
+            const.TEXT_THICKNESS,  # Thickness of the text
         )
 
 
 if __name__ == "__main__":
     model = load_model()
-    if WEBCAM:
+    if const.WEBCAM:
         # Initialize webcam capture
         cap = cv2.VideoCapture(0)  # Use the default webcam (usually index 0)
     else:
         # Initialize video capture
-        video_path = "data/video30s.mp4"
-        cap = cv2.VideoCapture(video_path)
+        cap = cv2.VideoCapture(const.INPUT_PATH)
 
     # Initialize output writer
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
     out = cv2.VideoWriter(
-        "data/output/TestVideoWithBBox.mp4",
+        const.OUTPUT_PATH + "_tracked.mp4",
         fourcc,
         30.0,
         (int(cap.get(3)), int(cap.get(4))),
@@ -117,7 +119,7 @@ if __name__ == "__main__":
 
         # Downscale the frame
         frame = cv2.resize(
-            frame, None, fx=1 / DOWNSCALE_FACTOR, fy=1 / DOWNSCALE_FACTOR
+            frame, None, fx=1 / const.DOWNSCALE_FACTOR, fy=1 / const.DOWNSCALE_FACTOR
         )
 
         # Start the timer
@@ -136,7 +138,7 @@ if __name__ == "__main__":
             matched = False
             for obj in tracked_objects:
                 iou = calculate_iou(obj.bbox, bbox)
-                if iou >= IOU_THRESHOLD:
+                if iou >= const.IOU_THRESHOLD:
                     obj.update_bbox(bbox)
                     new_tracked_objects.append(obj)
                     matched = True
