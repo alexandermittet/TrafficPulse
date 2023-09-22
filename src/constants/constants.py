@@ -1,5 +1,6 @@
 # Constants for all PY scripts
 import datetime
+import cv2
 
 # VIDEO SOURCE
 WEBCAM = False
