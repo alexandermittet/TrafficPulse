@@ -2,6 +2,7 @@
 import os
 import sys
 import numpy as np
+from constants import *
 
 np.float = float  # Fixing numpy change (should be solved in the future)
 HOME = os.getcwd()
