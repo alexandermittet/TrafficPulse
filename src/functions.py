@@ -197,3 +197,111 @@ def get_next_video_path(base_path=HOME, video_name="output.mp4"):
     target_video_path = os.path.join(run_folder, video_name)
 
     return target_video_path
+
+
+def webcam_generator(cap):
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+        yield frame
+
+
+def initialize_components(
+    USE_WEBCAM, VIDEO_PATH, MODEL, BYTETrackerArgs, LINE_START, LINE_END
+):
+    model = YOLO(MODEL)
+    model.fuse()
+    CLASS_NAMES_DICT = model.model.names
+    tracker = BYTETracker(BYTETrackerArgs())
+
+    if USE_WEBCAM:
+        cap = cv2.VideoCapture(0)
+        info = VideoInfo.from_video_path(0)
+        generator = webcam_generator(cap)
+    else:
+        info = VideoInfo.from_video_path(VIDEO_PATH)
+        generator = get_video_frames_generator(VIDEO_PATH)
+
+    line_counter = LineCounter(start=LINE_START, end=LINE_END)
+    box_annotator = BoxAnnotator(
+        color=ColorPalette(), thickness=2, text_thickness=2, text_scale=1
+    )
+    line_annotator = LineCounterAnnotator(thickness=2, text_thickness=2, text_scale=1)
+
+    return (
+        model,
+        tracker,
+        cap,
+        info,
+        generator,
+        line_counter,
+        box_annotator,
+        line_annotator,
+        CLASS_NAMES_DICT,
+    )
+
+
+def process_frame(
+    frame,
+    model,
+    tracker,
+    CLASS_NAMES_DICT,
+    CLASS_ID,
+    line_counter,
+    box_annotator,
+    line_annotator,
+):
+    results = model(frame)
+    detections = Detections(
+        xyxy=results[0].boxes.xyxy.cpu().numpy(),
+        confidence=results[0].boxes.conf.cpu().numpy(),
+        class_id=results[0].boxes.cls.cpu().numpy().astype(int),
+    )
+
+    mask = np.array(
+        [class_id in CLASS_ID for class_id in detections.class_id], dtype=bool
+    )
+    detections.filter(mask=mask, inplace=True)
+
+    tracks = tracker.update(
+        output_results=boxformatting(detections=detections),
+        img_info=frame.shape,
+        img_size=frame.shape,
+    )
+    tracker_id = dectect_track_matcher(detections=detections, tracks=tracks)
+    detections.tracker_id = np.array(tracker_id)
+
+    mask = np.array(
+        [tracker_id is not None for tracker_id in detections.tracker_id], dtype=bool
+    )
+    detections.filter(mask=mask, inplace=True)
+
+    for i in range(len(detections.xyxy)):
+        x1, y1, x2, y2 = map(int, detections.xyxy[i])
+        area = (x2 - x1) * (y2 - y1)
+        cv2.putText(
+            frame,
+            f"Area: {area}",
+            (x1, y2 + 20),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.5,
+            (255, 255, 255),
+            2,
+        )
+        padding = 6
+        color = (0, 255, 0) if area > 4000 else (255, 0, 0)
+        cv2.rectangle(
+            frame, (x1 + padding, y1 + padding), (x2 - padding, y2 - padding), color, 4
+        )
+
+    labels = [
+        f"#{tracker_id} {CLASS_NAMES_DICT[class_id]} {confidence:0.2f}"
+        for _, confidence, class_id, tracker_id in detections
+    ]
+
+    line_counter.update(detections=detections)
+    frame = box_annotator.annotate(frame=frame, detections=detections, labels=labels)
+    line_annotator.annotate(frame=frame, line_counter=line_counter)
+
+    return frame

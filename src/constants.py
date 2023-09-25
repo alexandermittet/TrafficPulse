@@ -1,5 +1,8 @@
 # constants.py
 
+# Use webcam:
+USE_WEBCAM = True
+
 # Video path:
 VIDEO_PATH = "/Users/marcusnsr/Desktop/AoM/data/video30s.mp4"
 
