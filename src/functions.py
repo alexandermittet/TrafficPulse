@@ -215,6 +215,9 @@ def initialize_components(
     CLASS_NAMES_DICT = model.model.names
     tracker = BYTETracker(BYTETrackerArgs())
 
+    # Initialize cap with a default value
+    cap = None
+
     if USE_WEBCAM:
         cap = cv2.VideoCapture(0)
         info = VideoInfo.from_video_path(0)
@@ -225,9 +228,9 @@ def initialize_components(
 
     line_counter = LineCounter(start=LINE_START, end=LINE_END)
     box_annotator = BoxAnnotator(
-        color=ColorPalette(), thickness=2, text_thickness=2, text_scale=1
+        color=ColorPalette(), thickness=1, text_thickness=1, text_scale=1
     )
-    line_annotator = LineCounterAnnotator(thickness=2, text_thickness=2, text_scale=1)
+    line_annotator = LineCounterAnnotator(thickness=1, text_thickness=1, text_scale=1)
 
     return (
         model,
