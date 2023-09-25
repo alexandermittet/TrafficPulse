@@ -11,3 +11,4 @@
 ### Requirements:
 - pip freeze > requirements.txt
 - Needs the Bytetrack repo cloned locally in '/src'. Install: "gh repo clone ifzhang/ByteTrack"
+- Needs to be run from "cd src" and not root
