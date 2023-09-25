@@ -200,6 +200,19 @@ def get_next_video_path(base_path=HOME, video_name="output.mp4"):
 
 
 def webcam_generator(cap):
+    """
+    Generate frames from a given video capture object.
+
+    Parameters:
+    - cap (cv2.VideoCapture): A video capture object, typically from OpenCV.
+
+    Yields:
+    - frame (numpy.ndarray): The next frame of the video capture.
+
+    Notes:
+    - The generator will break and stop yielding frames if the video capture fails to read a frame.
+    """
+
     while True:
         ret, frame = cap.read()
         if not ret:
@@ -210,6 +223,34 @@ def webcam_generator(cap):
 def initialize_components(
     USE_WEBCAM, VIDEO_PATH, MODEL, BYTETrackerArgs, LINE_START, LINE_END
 ):
+    """
+    Initializes components for object detection and tracking, including setting up the video source,
+    loading the YOLO model, and setting up annotations and line counters.
+
+    Parameters:
+    - USE_WEBCAM (bool): Flag to use webcam as video source. If set to False, uses the video path provided.
+    - VIDEO_PATH (str): Path to the video file to be processed. Only used if USE_WEBCAM is False.
+    - MODEL (str): Path to the YOLO model file.
+    - BYTETrackerArgs (class): Class or function to generate arguments for BYTETracker initialization.
+    - LINE_START (tuple): Starting point (x, y) of the line used in line counting.
+    - LINE_END (tuple): Ending point (x, y) of the line used in line counting.
+
+    Returns:
+    - model (YOLO): Initialized YOLO model.
+    - tracker (BYTETracker): Initialized BYTETracker object.
+    - cap (cv2.VideoCapture): Initialized video capture object.
+    - info (VideoInfo): Information about the video source.
+    - generator (generator): Generator to fetch video frames.
+    - line_counter (LineCounter): Initialized line counter object.
+    - box_annotator (BoxAnnotator): Initialized box annotator for drawing bounding boxes.
+    - line_annotator (LineCounterAnnotator): Initialized line annotator for visualizing the counting line.
+    - CLASS_NAMES_DICT (dict): Dictionary of class names used by the YOLO model.
+
+    Note:
+    Assumes that the YOLO, BYTETracker, VideoInfo, webcam_generator, get_video_frames_generator, LineCounter,
+    BoxAnnotator, LineCounterAnnotator, and ColorPalette classes/functions are imported and available in the same module.
+    """
+
     model = YOLO(MODEL)
     model.fuse()
     CLASS_NAMES_DICT = model.model.names
@@ -255,6 +296,34 @@ def process_frame(
     box_annotator,
     line_annotator,
 ):
+    """
+    Process a given frame to detect and annotate objects based on the provided model and parameters.
+
+    Parameters:
+    - frame (numpy.ndarray): The image frame to be processed.
+    - model: The pre-trained model used for object detection.
+    - tracker: The object tracker instance.
+    - CLASS_NAMES_DICT (dict): A dictionary mapping class IDs to their respective class names.
+    - CLASS_ID (list): List of class IDs of interest for filtering detections.
+    - line_counter: An instance responsible for counting objects crossing a predefined line.
+    - box_annotator: An instance responsible for annotating bounding boxes on the frame.
+    - line_annotator: An instance responsible for annotating lines on the frame.
+
+    Returns:
+    - numpy.ndarray: The annotated frame.
+
+    The function carries out the following tasks:
+    1. Use the model to detect objects in the frame.
+    2. Convert detection results to a standard format.
+    3. Filter out detections based on the provided class IDs.
+    4. Update the tracker with the filtered detections.
+    5. Match the detections with tracker IDs.
+    6. Filter detections again based on valid tracker IDs.
+    7. Annotate the frame with the area of detected objects and a bounding box.
+    8. Generate labels for detections using class names, confidence, and tracker IDs.
+    9. Update the line counter based on detections.
+    10. Annotate the frame with the generated labels and lines.
+    """
     results = model(frame)
     detections = Detections(
         xyxy=results[0].boxes.xyxy.cpu().numpy(),
