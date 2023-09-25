@@ -38,27 +38,33 @@ def main():
 
     # VideoSink helps in writing the processed frames to a new video
     with VideoSink(get_next_video_path(video_name=TARGET_VIDEO_NAME), info) as sink:
-        # Process each frame from the generator (typically frames from a video or webcam feed)
-        for frame in tqdm(generator, total=info.total_frames):
-            frame = process_frame(
-                frame,
-                model,
-                tracker,
-                CLASS_NAMES_DICT,
-                CLASS_ID,
-                line_counter,
-                box_annotator,
-                line_annotator,
-            )
-            # Write the processed frame to the output video
-            sink.write_frame(frame)
+        # Create another VideoSink for saving the original frames
+        with VideoSink(
+            get_next_video_path(video_name="Original_" + TARGET_VIDEO_NAME), info
+        ) as original_sink:
+            # Process each frame from the generator (typically frames from a video or webcam feed)
+            for frame in tqdm(generator, total=info.total_frames):
+                # Save the original frame to the original video
+                original_sink.write_frame(frame)
+                frame = process_frame(
+                    frame,
+                    model,
+                    tracker,
+                    CLASS_NAMES_DICT,
+                    CLASS_ID,
+                    line_counter,
+                    box_annotator,
+                    line_annotator,
+                )
+                # Write the processed frame to the output video
+                sink.write_frame(frame)
 
-            # Display the processed frame in a window
-            cv2.imshow("Processed Frame", frame)
+                # Display the processed frame in a window
+                cv2.imshow("Processed Frame", frame)
 
-            # Exit the loop if the 'q' key is pressed
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
+                # Exit the loop if the 'q' key is pressed
+                if cv2.waitKey(1) & 0xFF == ord("q"):
+                    break
 
     # If using webcam, release the camera resource
     if USE_WEBCAM:
