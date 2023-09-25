@@ -2,9 +2,9 @@ absl-py==2.0.0
 aiofiles==23.2.1
 annotated-types==0.5.0
 anyio==4.0.0
-appnope @ file:///Users/ktietz/ci_310/appnope_1643965056645/work
-asttokens @ file:///opt/conda/conda-bld/asttokens_1646925590279/work
-backcall @ file:///home/ktietz/src/ci/backcall_1611930011877/work
+# appnope @ file:///Users/ktietz/ci_310/appnope_1643965056645/work
+# asttokens @ file:///opt/conda/conda-bld/asttokens_1646925590279/work
+# backcall @ file:///home/ktietz/src/ci/backcall_1611930011877/work
 blis==0.7.11
 Brotli==1.1.0
 cachetools==5.3.1
