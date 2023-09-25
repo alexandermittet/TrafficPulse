@@ -259,14 +259,21 @@ def initialize_components(
     # Initialize cap with a default value
     cap = None
 
+    # Check if we are using webcam
     if USE_WEBCAM:
+        # Set to default camera
         cap = cv2.VideoCapture(0)
+        # Det the video info from the default camera
         info = VideoInfo.from_video_path(0)
+        # Set the generator to the webcam generator
         generator = webcam_generator(cap)
     else:
+        # Set the video capture to the video path
         info = VideoInfo.from_video_path(VIDEO_PATH)
+        # Set the generator to the video frames generator
         generator = get_video_frames_generator(VIDEO_PATH)
 
+    # Init line counter and annotators
     line_counter = LineCounter(start=LINE_START, end=LINE_END)
     box_annotator = BoxAnnotator(
         color=ColorPalette(), thickness=1, text_thickness=1, text_scale=1
