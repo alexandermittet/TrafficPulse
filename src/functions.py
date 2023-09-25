@@ -274,34 +274,50 @@ def process_frame(
     9. Update the line counter based on detections.
     10. Annotate the frame with the generated labels and lines.
     """
+    # Get the detection results from the model for the given frame
     results = model(frame)
+
+    # Extract the relevant detection attributes from the results and store in Detections object
     detections = Detections(
-        xyxy=results[0].boxes.xyxy.cpu().numpy(),
-        confidence=results[0].boxes.conf.cpu().numpy(),
-        class_id=results[0].boxes.cls.cpu().numpy().astype(int),
+        xyxy=results[0].boxes.xyxy.cpu().numpy(),  # Bounding box coordinates
+        confidence=results[0]
+        .boxes.conf.cpu()
+        .numpy(),  # Confidence scores of detections
+        class_id=results[0]
+        .boxes.cls.cpu()
+        .numpy()
+        .astype(int),  # Class IDs of detections
     )
 
+    # Create a mask to filter detections based on the predefined CLASS_ID list
     mask = np.array(
         [class_id in CLASS_ID for class_id in detections.class_id], dtype=bool
     )
+    # Filter the detections based on the mask
     detections.filter(mask=mask, inplace=True)
 
+    # Update the tracker with the filtered detections and obtain tracking results
     tracks = tracker.update(
         output_results=boxformatting(detections=detections),
         img_info=frame.shape,
         img_size=frame.shape,
     )
+
+    # Match the detections with the corresponding tracker IDs
     tracker_id = dectect_track_matcher(detections=detections, tracks=tracks)
     detections.tracker_id = np.array(tracker_id)
 
+    # Create a mask to filter out detections without any associated tracker ID
     mask = np.array(
         [tracker_id is not None for tracker_id in detections.tracker_id], dtype=bool
     )
     detections.filter(mask=mask, inplace=True)
 
+    # For each detection, annotate the frame with the bounding box and the area
     for i in range(len(detections.xyxy)):
         x1, y1, x2, y2 = map(int, detections.xyxy[i])
         area = (x2 - x1) * (y2 - y1)
+        # Display the area of the detection on the frame
         cv2.putText(
             frame,
             f"Area: {area}",
@@ -312,20 +328,27 @@ def process_frame(
             2,
         )
         padding = 6
+        # Set the color of the bounding box based on the area of the detection
         color = (0, 255, 0) if area > 4000 else (255, 0, 0)
+        # Draw the bounding box on the frame
         cv2.rectangle(
             frame, (x1 + padding, y1 + padding), (x2 - padding, y2 - padding), color, 4
         )
 
+    # Generate labels for each detection to display the tracker ID, class name, and confidence
     labels = [
         f"#{tracker_id} {CLASS_NAMES_DICT[class_id]} {confidence:0.2f}"
         for _, confidence, class_id, tracker_id in detections
     ]
 
+    # Update the line counter with the new detections
     line_counter.update(detections=detections)
+    # Annotate the frame with the detection boxes and associated labels
     frame = box_annotator.annotate(frame=frame, detections=detections, labels=labels)
+    # Annotate the frame with any additional lines
     line_annotator.annotate(frame=frame, line_counter=line_counter)
 
+    # Return the annotated frame
     return frame
 
 

@@ -1,14 +1,18 @@
 # constants.py
+import os
 
-# Use webcam:
-USE_WEBCAM = True
-WEBCAM_ID = 0
+SRC_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT_DIR = os.path.join(SRC_DIR, os.pardir)
 
 # Video path:
 VIDEO_PATH = "/Users/marcusnsr/Desktop/AoM/data/cycles.mp4"
 
-# Model:
-MODEL = "yolov8n.pt"
+# Create the absolute path to the model
+MODEL = os.path.join(PROJECT_ROOT_DIR, "models", "yolov8n.pt")
+
+# Use webcam:
+USE_WEBCAM = True
+WEBCAM_ID = 0
 
 # Classes to track:
 CLASS_ID = [2]
