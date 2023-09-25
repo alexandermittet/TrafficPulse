@@ -2,6 +2,7 @@
 
 # Use webcam:
 USE_WEBCAM = True
+WEBCAM_ID = 0
 
 # Video path:
 VIDEO_PATH = "/Users/marcusnsr/Desktop/AoM/data/cycles.mp4"
@@ -95,4 +96,4 @@ CLASS_ID = [2]
 """
 
 # Output video name:
-TARGET_VIDEO_NAME = "YOLOv8_result.mp4"
+TARGET_VIDEO_NAME = "YOLOv8.mp4"

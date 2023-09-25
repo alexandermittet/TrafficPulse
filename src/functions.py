@@ -163,63 +163,6 @@ def dectect_track_matcher(detections: Detections, tracks: List[STrack]) -> Detec
     return ids
 
 
-def get_next_video_path(base_path=HOME, video_name="output.mp4"):
-    """
-    Returns the next video path based on available run numbers.
-
-    Args:
-    - base_path (str): The base directory where the 'runs' folder exists or should be created.
-    - video_name (str): The name of the output video. Defaults to 'output.mp4'.
-
-    Returns:
-    - str: The next available path for the video inside a numbered run folder.
-    """
-    # Define the path to the runs folder
-    runs_folder_path = os.path.join(base_path, "runs")
-
-    # Create the runs folder if it doesn't exist
-    if not os.path.exists(runs_folder_path):
-        os.makedirs(runs_folder_path)
-
-    # Find the next available run number
-    run_numbers = [
-        int(folder)
-        for folder in os.listdir(runs_folder_path)
-        if folder.isdigit() and len(folder) == 3
-    ]
-    next_run_number = max(run_numbers, default=0) + 1
-
-    # Create the run folder for the next video
-    run_folder = os.path.join(runs_folder_path, "{:03}".format(next_run_number))
-    os.makedirs(run_folder)
-
-    # Construct the path to the output video within the run folder
-    target_video_path = os.path.join(run_folder, video_name)
-
-    return target_video_path
-
-
-def webcam_generator(cap):
-    """
-    Generate frames from a given video capture object.
-
-    Parameters:
-    - cap (cv2.VideoCapture): A video capture object, typically from OpenCV.
-
-    Yields:
-    - frame (numpy.ndarray): The next frame of the video capture.
-
-    Notes:
-    - The generator will break and stop yielding frames if the video capture fails to read a frame.
-    """
-
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            break
-        yield frame
-
-
 def initialize_components(
     USE_WEBCAM, VIDEO_PATH, MODEL, BYTETrackerArgs, LINE_START, LINE_END
 ):
@@ -262,9 +205,9 @@ def initialize_components(
     # Check if we are using webcam
     if USE_WEBCAM:
         # Set to default camera
-        cap = cv2.VideoCapture(0)
+        cap = cv2.VideoCapture(WEBCAM_ID)
         # Det the video info from the default camera
-        info = VideoInfo.from_video_path(0)
+        info = VideoInfo.from_video_path(WEBCAM_ID)
         # Set the generator to the webcam generator
         generator = webcam_generator(cap)
     else:
@@ -384,3 +327,66 @@ def process_frame(
     line_annotator.annotate(frame=frame, line_counter=line_counter)
 
     return frame
+
+
+def get_next_video_path(base_path=HOME, video_name="output.mp4", force_new_run=False):
+    """
+    Returns the next video path based on available run numbers.
+
+    Args:
+    - base_path (str): The base directory where the 'runs' folder exists or should be created.
+    - video_name (str): The name of the output video. Defaults to 'output.mp4'.
+    - force_new_run (bool): If True, creates a new run folder. Otherwise, use the latest run folder.
+
+    Returns:
+    - str: The next available path for the video inside a numbered run folder.
+    """
+    # Define the path to the runs folder
+    runs_folder_path = os.path.join(base_path, "runs")
+
+    # Create the runs folder if it doesn't exist
+    if not os.path.exists(runs_folder_path):
+        os.makedirs(runs_folder_path)
+
+    # Find the next available run number
+    run_numbers = [
+        int(folder)
+        for folder in os.listdir(runs_folder_path)
+        if folder.isdigit() and len(folder) == 3
+    ]
+
+    if force_new_run:
+        next_run_number = max(run_numbers, default=0) + 1
+        # Create the run folder for the next video
+        run_folder = os.path.join(runs_folder_path, "{:03}".format(next_run_number))
+        os.makedirs(run_folder)
+    else:
+        # Use the latest run folder
+        current_run_number = max(run_numbers, default=1)
+        run_folder = os.path.join(runs_folder_path, "{:03}".format(current_run_number))
+
+    # Construct the path to the output video within the run folder
+    target_video_path = os.path.join(run_folder, video_name)
+
+    return target_video_path
+
+
+def webcam_generator(cap):
+    """
+    Generate frames from a given video capture object.
+
+    Parameters:
+    - cap (cv2.VideoCapture): A video capture object, typically from OpenCV.
+
+    Yields:
+    - frame (numpy.ndarray): The next frame of the video capture.
+
+    Notes:
+    - The generator will break and stop yielding frames if the video capture fails to read a frame.
+    """
+
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+        yield frame

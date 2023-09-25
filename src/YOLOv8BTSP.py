@@ -37,10 +37,15 @@ def main():
     )
 
     # VideoSink helps in writing the processed frames to a new video
-    with VideoSink(get_next_video_path(video_name=TARGET_VIDEO_NAME), info) as sink:
+    with VideoSink(
+        get_next_video_path(
+            video_name="result_" + TARGET_VIDEO_NAME, force_new_run=True
+        ),
+        info,
+    ) as sink:
         # Create another VideoSink for saving the original frames
         with VideoSink(
-            get_next_video_path(video_name="Original_" + TARGET_VIDEO_NAME), info
+            get_next_video_path(video_name="original_" + TARGET_VIDEO_NAME), info
         ) as original_sink:
             # Process each frame from the generator (typically frames from a video or webcam feed)
             for frame in tqdm(generator, total=info.total_frames):
