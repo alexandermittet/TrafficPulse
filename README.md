@@ -10,3 +10,4 @@
 
 ### Requirements:
 - pip freeze > requirements.txt
+- Needs the Bytetrack repo cloned locally in '/src'. Install: "gh repo clone ifzhang/ByteTrack"
