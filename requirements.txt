@@ -23,7 +23,7 @@ cython-bbox==0.1.3
 dataclasses-json==0.6.0
 # debugpy @ file:///private/var/folders/k1/30mswbxs7r1g6zwn8y4fyt500000gp/T/abs_563_nwtkoc/croot/debugpy_1690905063850/work
 # decorator @ file:///opt/conda/conda-bld/decorator_1643638310831/work
-# duckduckgo-search==3.8.5
+duckduckgo-search==3.8.5
 # exceptiongroup @ file:///private/var/folders/nz/j6p8yfhx1mv_0grj5xl4650h0000gp/T/abs_39x5d_sfd0/croot/exceptiongroup_1668714346145/work
 # executing @ file:///opt/conda/conda-bld/executing_1646925071911/work
 fastai==2.7.12
