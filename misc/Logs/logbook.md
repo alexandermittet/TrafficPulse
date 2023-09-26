@@ -55,3 +55,12 @@
 - Technical:
   - Implemented line counter to the yolov8 model with ByteTracker
   - Working on tracking cars based on color and using area for determening if the cars is moving closer or away from the camera
+
+#### 21-26. sept 2023
+- Technical:
+  - Converted the jupyter notebook to a .py file, further more structed everything into YOLOv8BTSP.py, functions.py and constant.py for easier management
+  - We now display the area of the bounding boxes and can switch the color based on how close/far away an object is to the camera.
+  - We now store the amount of cars pr frame in a csv file such that with plot.py we can plot how many cars over time is counted, we later want to convert this to maybe pr minute or second such that we dont have for each frame.
+  - We have implemented the use of webcam, we can now toggle the webcam on and off in constants.py.
+  - restructured our repo
+  - We also now save the original video from the webcam with out boundingboxes such that we can compare on differnet models.
