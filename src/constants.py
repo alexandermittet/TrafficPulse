@@ -8,6 +8,7 @@ PROJECT_ROOT_DIR = os.path.join(SRC_DIR, os.pardir)
 # Video path:
 VIDEO_PATH = "/Users/marcusnsr/Desktop/AoM/data/video30s.mp4"
 
+
 # Create the absolute path to the model
 MODEL = os.path.join(PROJECT_ROOT_DIR, "models", "yolov8n.pt")
 
@@ -102,3 +103,4 @@ CLASS_ID = [2]
 
 compact_datetime = datetime.now().strftime("%m-%d_%H:%M:%S")
 TARGET_VIDEO_NAME = f"YOLOv8_({compact_datetime}).mp4"
+TARGET_CSV_NAME = f"YOLOv8_({compact_datetime}).csv"
