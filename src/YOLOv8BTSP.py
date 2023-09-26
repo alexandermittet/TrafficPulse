@@ -5,8 +5,8 @@ from functions import *
 from constants import *
 
 # Settings
-LINE_START = Point(0, 400)
-LINE_END = Point(1280, 400)
+LINE_START = Point(0, 250)
+LINE_END = Point(1280, 250)
 
 
 # Using a dataclass to represent arguments for BYTETracker

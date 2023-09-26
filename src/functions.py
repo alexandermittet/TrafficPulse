@@ -9,6 +9,7 @@ HOME = os.getcwd()
 sys.path.append(f"{HOME}/ByteTrack")
 
 import cv2
+import csv
 import supervision
 from supervision.draw.color import ColorPalette
 from supervision.geometry.dataclasses import Point
@@ -344,12 +345,29 @@ def process_frame(
     # Update the line counter with the new detections
     line_counter.update(detections=detections)
 
-    # TODO: Implement line counting statistics/analysis
-    """
-    print(line_counter.in_count, line_counter.out_count)
-    with open("/Users/marcusnsr/Desktop/AoM/src/test.txt", "w") as f:
-        f.write(f"{line_counter.in_count}, {line_counter.out_count}")
-    """
+    # Check if the file exists
+    filename = get_next_video_path(video_name=TARGET_CSV_NAME)
+    file_exists = os.path.exists(filename)
+
+    with open(filename, "a", newline="") as f:  # Open the file in append mode
+        writer = csv.writer(f)
+
+        # If the file didn't exist before, write the headers
+        if not file_exists:
+            writer.writerow(["ID", "In Count", "Out Count"])
+
+        # Get the next ID
+        # If the file is empty, start with 1, otherwise get the next ID
+        next_id = 1
+        if file_exists:
+            with open(filename, "r", newline="") as read_f:
+                rows = list(csv.reader(read_f))
+                last_row = rows[-1] if rows else None
+                if last_row:
+                    next_id = int(last_row[0]) + 1  # Increase ID by 1 from the last row
+
+        writer.writerow([next_id, line_counter.in_count, line_counter.out_count])
+
     # Annotate the frame with the detection boxes and associated labels
     frame = box_annotator.annotate(frame=frame, detections=detections, labels=labels)
     # Annotate the frame with any additional lines
