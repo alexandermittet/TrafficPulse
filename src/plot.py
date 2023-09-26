@@ -1,7 +1,7 @@
 import csv
 import matplotlib.pyplot as plt
 
-filename = "/Users/marcusnsr/Desktop/AoM/src/test.csv"
+filename = ""
 
 # Lists to store the data
 ids = []
