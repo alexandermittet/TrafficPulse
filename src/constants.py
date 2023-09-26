@@ -1,5 +1,6 @@
 # constants.py
 import os
+from datetime import datetime
 
 SRC_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT_DIR = os.path.join(SRC_DIR, os.pardir)
@@ -99,11 +100,5 @@ CLASS_ID = [2]
 79: 'toothbrush'
 """
 
-from datetime import datetime
-
 compact_datetime = datetime.now().strftime("%m-%d_%H:%M:%S")
-TARGET_VIDEO_NAME = f"YOLOv8_{compact_datetime}.mp4"
-
-
-if __name__ == "__main__":
-    print(TARGET_VIDEO_NAME)
+TARGET_VIDEO_NAME = f"YOLOv8_({compact_datetime}).mp4"
