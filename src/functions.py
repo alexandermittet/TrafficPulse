@@ -11,6 +11,7 @@ sys.path.append(f"{HOME}/ByteTrack")
 import cv2
 import csv
 import supervision
+import matplotlib.pyplot as plt
 from supervision.draw.color import ColorPalette
 from supervision.geometry.dataclasses import Point
 from supervision.video.dataclasses import VideoInfo
@@ -438,3 +439,38 @@ def webcam_generator(cap):
         if not ret:
             break
         yield frame
+
+
+def plot(filename):
+    # Lists to store the data
+    ids = []
+    in_counts = []
+    out_counts = []
+
+    # Read data from the CSV file
+    with open(filename, "r", newline="") as f:
+        reader = csv.reader(f)
+        next(reader)  # Skip the header row
+        for row in reader:
+            ids.append(int(row[0]))
+            in_counts.append(int(row[1]))
+            out_counts.append(int(row[2]))
+
+    # Plotting the data
+    plt.figure(figsize=(10, 6))
+
+    plt.plot(ids, in_counts, label="In Count", marker="o")
+    plt.plot(ids, out_counts, label="Out Count", marker="o")
+
+    plt.title("In Count vs. Out Count")
+    plt.xlabel("ID")
+    plt.ylabel("Count")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+
+    # Save the plot as an image in the same directory as the CSV file
+    image_path = filename.replace(".csv", ".png")
+    plt.savefig(image_path)
+
+    plt.show()
