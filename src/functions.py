@@ -343,6 +343,13 @@ def process_frame(
 
     # Update the line counter with the new detections
     line_counter.update(detections=detections)
+
+    # TODO: Implement line counting statistics/analysis
+    """
+    print(line_counter.in_count, line_counter.out_count)
+    with open("/Users/marcusnsr/Desktop/AoM/src/test.txt", "w") as f:
+        f.write(f"{line_counter.in_count}, {line_counter.out_count}")
+    """
     # Annotate the frame with the detection boxes and associated labels
     frame = box_annotator.annotate(frame=frame, detections=detections, labels=labels)
     # Annotate the frame with any additional lines
