@@ -6,7 +6,7 @@ SRC_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT_DIR = os.path.join(SRC_DIR, os.pardir)
 
 # Video path:
-VIDEO_PATH = "/Users/marcusnsr/Desktop/AoM/data/video30s.mp4"
+VIDEO_PATH = os.path.join(PROJECT_ROOT_DIR, "data", "video30s.mp4")
 
 
 # Create the absolute path to the model
