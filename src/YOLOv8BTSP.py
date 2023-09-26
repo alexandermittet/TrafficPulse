@@ -75,6 +75,9 @@ def main():
     if USE_WEBCAM:
         cap.release()
 
+    csv_file_path = get_next_video_path(video_name=TARGET_CSV_NAME)
+    plot(csv_file_path)
+
     # Destroy all OpenCV windows
     cv2.destroyAllWindows()
 
