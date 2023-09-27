@@ -221,7 +221,11 @@ def initialize_components(
     # Init line counter and annotators
     line_counter = LineCounter(start=LINE_START, end=LINE_END)
     box_annotator = BoxAnnotator(
-        color=ColorPalette(), thickness=1, text_thickness=1, text_scale=1
+        color=ColorPalette(),
+        thickness=2,
+        text_thickness=1,
+        text_scale=0.5,
+        text_padding=3,
     )
     line_annotator = LineCounterAnnotator(thickness=1, text_thickness=1, text_scale=1)
 

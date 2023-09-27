@@ -34,12 +34,8 @@ def click_event(event, x, y, flags, params):
 
 
 # Read video and get the first frame
-cap = cv2.VideoCapture("/Users/marcusnsr/Desktop/AoM/data/test.mp4")
+cap = cv2.VideoCapture(VIDEO_PATH)
 ret, frame = cap.read()
-
-if not ret:
-    print("Cannot read video")
-    exit()
 
 # Set the callback function for mouse events
 cv2.imshow("image", frame)
@@ -54,7 +50,6 @@ print("Selected points:", points)
 # Release video and close window
 cap.release()
 cv2.destroyAllWindows()
-
 # Now, you can use the selected points as LINE_START and LINE_END
 LINE_START = Point(*points[0])
 LINE_END = Point(*points[1])
