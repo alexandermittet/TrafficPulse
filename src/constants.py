@@ -17,7 +17,7 @@ USE_WEBCAM = False
 WEBCAM_ID = 0
 
 # Classes to track:
-CLASS_ID = [1]
+CLASS_ID = [1, 2, 7]
 """
 0: 'person',
 1: 'bicycle',
