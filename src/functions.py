@@ -330,12 +330,18 @@ def process_frame(
             (x1, y2 + 20),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.5,
-            (255, 255, 255),
+            (0, 0, 0),
             2,
         )
         padding = 6
         # Set the color of the bounding box based on the area of the detection
-        color = (0, 255, 0) if area > 4000 else (255, 0, 0)
+        if area > 65000:
+            color = (0, 0, 255)
+        elif area < 55000:
+            color = (0, 255, 255)
+        else:
+            color = (0, 255, 0)
+
         # Draw the bounding box on the frame
         cv2.rectangle(
             frame, (x1 + padding, y1 + padding), (x2 - padding, y2 - padding), color, 4
