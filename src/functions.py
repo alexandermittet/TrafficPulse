@@ -404,7 +404,7 @@ def get_next_video_path(base_path=HOME, video_name="output.mp4", force_new_run=F
     - str: The next available path for the video inside a numbered run folder.
     """
     # Define the path to the runs folder
-    runs_folder_path = os.path.join(base_path, "runs")
+    runs_folder_path = os.path.join(base_path, "src/runs")
 
     # Create the runs folder if it doesn't exist
     if not os.path.exists(runs_folder_path):
@@ -506,3 +506,42 @@ def plot(filename):
     plt.savefig(image_path)
 
     plt.show()
+
+
+def select_two_points_from_video(video_path):
+    # Nested function for the mouse click event
+    def click_event(event, x, y, flags, params):
+        if event == cv2.EVENT_LBUTTONDOWN:
+            points.append((x, y))
+            if len(points) == 2:
+                cv2.line(frame, points[0], points[1], (0, 255, 0), 2)
+                cv2.imshow("image", frame)
+
+    # Local list to store points
+    points = []
+
+    # Read video and get the first frame
+    cap = cv2.VideoCapture(video_path)
+    ret, frame = cap.read()
+
+    # Check if frame reading was successful
+    if not ret:
+        print("Failed to read video")
+        return None, None
+
+    # Set the callback function for mouse events
+    cv2.imshow("image", frame)
+    cv2.setMouseCallback("image", click_event)
+
+    # Wait for two points to be selected
+    cv2.waitKey(0)
+
+    # Release video and close window
+    cap.release()
+    cv2.destroyAllWindows()
+
+    # Return the selected points
+    if len(points) == 2:
+        return points[0], points[1]
+    else:
+        return None, None
