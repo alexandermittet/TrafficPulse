@@ -64,3 +64,14 @@
   - We have implemented the use of webcam, we can now toggle the webcam on and off in constants.py.
   - restructured our repo
   - We also now save the original video from the webcam with out boundingboxes such that we can compare on differnet models.
+
+#### 27-29. sept 2023
+- Technical:
+  - We can now draw the counting line interactively using the coordinates from mouse clicking on the frame
+  - We now keep the count of each frame in a csv file for a whole run which we now plot when a run is done. 
+  - We have made our own version of line_counter where we now get a unique in/out-count for each class detected.
+  - We have tried to retrain a yolov8 model just for testing
+
+- IRL:
+  - We went out to dr. louises bro and did a real life test on bikes againt manual counting and sensor counting (results in run 1-4 on Marucs' mac)
+  - We read and discussed the bytetrack paper as we promised Bjørn
