@@ -10,6 +10,7 @@ sys.path.append(f"{HOME}/ByteTrack")
 
 import cv2
 import csv
+import ast
 import supervision
 import matplotlib.pyplot as plt
 from supervision.draw.color import ColorPalette
@@ -19,7 +20,7 @@ from supervision.video.source import get_video_frames_generator
 from supervision.video.sink import VideoSink
 from supervision.notebook.utils import show_frame_in_notebook
 from supervision.tools.detections import Detections, BoxAnnotator
-from supervision.tools.line_counter import LineCounter, LineCounterAnnotator
+from line_counter import LineCounter, LineCounterAnnotator
 from ByteTrack import yolox
 from ultralytics import YOLO
 from ByteTrack.yolox.tracker.byte_tracker import BYTETracker, STrack
@@ -221,7 +222,11 @@ def initialize_components(
     # Init line counter and annotators
     line_counter = LineCounter(start=LINE_START, end=LINE_END)
     box_annotator = BoxAnnotator(
-        color=ColorPalette(), thickness=1, text_thickness=1, text_scale=1
+        color=ColorPalette(),
+        thickness=2,
+        text_thickness=1,
+        text_scale=0.5,
+        text_padding=3,
     )
     line_annotator = LineCounterAnnotator(thickness=1, text_thickness=1, text_scale=1)
 
@@ -326,12 +331,18 @@ def process_frame(
             (x1, y2 + 20),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.5,
-            (255, 255, 255),
+            (0, 0, 0),
             2,
         )
         padding = 6
         # Set the color of the bounding box based on the area of the detection
-        color = (0, 255, 0) if area > 4000 else (255, 0, 0)
+        if area > 65000:
+            color = (0, 0, 255)
+        elif area < 55000:
+            color = (0, 255, 255)
+        else:
+            color = (0, 255, 0)
+
         # Draw the bounding box on the frame
         cv2.rectangle(
             frame, (x1 + padding, y1 + padding), (x2 - padding, y2 - padding), color, 4
@@ -367,7 +378,9 @@ def process_frame(
                 if last_row:
                     next_id = int(last_row[0]) + 1  # Increase ID by 1 from the last row
 
-        writer.writerow([next_id, line_counter.in_count, line_counter.out_count])
+        writer.writerow(
+            [next_id, str(line_counter.in_count), str(line_counter.out_count)]
+        )
 
     # Annotate the frame with the detection boxes and associated labels
     frame = box_annotator.annotate(frame=frame, detections=detections, labels=labels)
@@ -391,7 +404,7 @@ def get_next_video_path(base_path=HOME, video_name="output.mp4", force_new_run=F
     - str: The next available path for the video inside a numbered run folder.
     """
     # Define the path to the runs folder
-    runs_folder_path = os.path.join(base_path, "runs")
+    runs_folder_path = os.path.join(base_path, "src/runs")
 
     # Create the runs folder if it doesn't exist
     if not os.path.exists(runs_folder_path):
@@ -442,10 +455,10 @@ def webcam_generator(cap):
 
 
 def plot(filename):
-    # Lists to store the data
+    # Dictionaries to store the data for each class ID
     ids = []
-    in_counts = []
-    out_counts = []
+    in_counts = {}  # {class_id: [counts for each frame]}
+    out_counts = {}  # {class_id: [counts for each frame]}
 
     # Read data from the CSV file
     with open(filename, "r", newline="") as f:
@@ -453,14 +466,33 @@ def plot(filename):
         next(reader)  # Skip the header row
         for row in reader:
             ids.append(int(row[0]))
-            in_counts.append(int(row[1]))
-            out_counts.append(int(row[2]))
+            in_count_dict = ast.literal_eval(row[1])
+            out_count_dict = ast.literal_eval(row[2])
+
+            for class_id, count in in_count_dict.items():
+                if class_id not in in_counts:
+                    in_counts[class_id] = []
+                in_counts[class_id].append(count)
+
+            for class_id, count in out_count_dict.items():
+                if class_id not in out_counts:
+                    out_counts[class_id] = []
+                out_counts[class_id].append(count)
 
     # Plotting the data
     plt.figure(figsize=(10, 6))
 
-    plt.plot(ids, in_counts, label="In Count", marker="o")
-    plt.plot(ids, out_counts, label="Out Count", marker="o")
+    for class_id, counts in in_counts.items():
+        plt.plot(ids, counts, label=f"In Count (Class {class_id})", marker="o")
+
+    for class_id, counts in out_counts.items():
+        plt.plot(
+            ids,
+            counts,
+            label=f"Out Count (Class {class_id})",
+            marker="o",
+            linestyle="--",
+        )
 
     plt.title("In Count vs. Out Count")
     plt.xlabel("ID")
@@ -474,3 +506,42 @@ def plot(filename):
     plt.savefig(image_path)
 
     plt.show()
+
+
+def select_two_points_from_video(video_path):
+    # Nested function for the mouse click event
+    def click_event(event, x, y, flags, params):
+        if event == cv2.EVENT_LBUTTONDOWN:
+            points.append((x, y))
+            if len(points) == 2:
+                cv2.line(frame, points[0], points[1], (0, 255, 0), 2)
+                cv2.imshow("image", frame)
+
+    # Local list to store points
+    points = []
+
+    # Read video and get the first frame
+    cap = cv2.VideoCapture(video_path)
+    ret, frame = cap.read()
+
+    # Check if frame reading was successful
+    if not ret:
+        print("Failed to read video")
+        return None, None
+
+    # Set the callback function for mouse events
+    cv2.imshow("image", frame)
+    cv2.setMouseCallback("image", click_event)
+
+    # Wait for two points to be selected
+    cv2.waitKey(0)
+
+    # Release video and close window
+    cap.release()
+    cv2.destroyAllWindows()
+
+    # Return the selected points
+    if len(points) == 2:
+        return points[0], points[1]
+    else:
+        return None, None
