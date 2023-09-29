@@ -10,6 +10,7 @@ sys.path.append(f"{HOME}/ByteTrack")
 
 import cv2
 import csv
+import ast
 import supervision
 import matplotlib.pyplot as plt
 from supervision.draw.color import ColorPalette
@@ -377,7 +378,9 @@ def process_frame(
                 if last_row:
                     next_id = int(last_row[0]) + 1  # Increase ID by 1 from the last row
 
-        writer.writerow([next_id, line_counter.in_count, line_counter.out_count])
+        writer.writerow(
+            [next_id, str(line_counter.in_count), str(line_counter.out_count)]
+        )
 
     # Annotate the frame with the detection boxes and associated labels
     frame = box_annotator.annotate(frame=frame, detections=detections, labels=labels)
@@ -452,10 +455,10 @@ def webcam_generator(cap):
 
 
 def plot(filename):
-    # Lists to store the data
+    # Dictionaries to store the data for each class ID
     ids = []
-    in_counts = []
-    out_counts = []
+    in_counts = {}  # {class_id: [counts for each frame]}
+    out_counts = {}  # {class_id: [counts for each frame]}
 
     # Read data from the CSV file
     with open(filename, "r", newline="") as f:
@@ -463,14 +466,33 @@ def plot(filename):
         next(reader)  # Skip the header row
         for row in reader:
             ids.append(int(row[0]))
-            in_counts.append(int(row[1]))
-            out_counts.append(int(row[2]))
+            in_count_dict = ast.literal_eval(row[1])
+            out_count_dict = ast.literal_eval(row[2])
+
+            for class_id, count in in_count_dict.items():
+                if class_id not in in_counts:
+                    in_counts[class_id] = []
+                in_counts[class_id].append(count)
+
+            for class_id, count in out_count_dict.items():
+                if class_id not in out_counts:
+                    out_counts[class_id] = []
+                out_counts[class_id].append(count)
 
     # Plotting the data
     plt.figure(figsize=(10, 6))
 
-    plt.plot(ids, in_counts, label="In Count", marker="o")
-    plt.plot(ids, out_counts, label="Out Count", marker="o")
+    for class_id, counts in in_counts.items():
+        plt.plot(ids, counts, label=f"In Count (Class {class_id})", marker="o")
+
+    for class_id, counts in out_counts.items():
+        plt.plot(
+            ids,
+            counts,
+            label=f"Out Count (Class {class_id})",
+            marker="o",
+            linestyle="--",
+        )
 
     plt.title("In Count vs. Out Count")
     plt.xlabel("ID")
