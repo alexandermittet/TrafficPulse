@@ -20,7 +20,7 @@ from supervision.video.source import get_video_frames_generator
 from supervision.video.sink import VideoSink
 from supervision.notebook.utils import show_frame_in_notebook
 from supervision.tools.detections import Detections, BoxAnnotator
-from supervision.tools.line_counter import LineCounter, LineCounterAnnotator
+from line_counter import LineCounter, LineCounterAnnotator
 from ByteTrack import yolox
 from ultralytics import YOLO
 from ByteTrack.yolox.tracker.byte_tracker import BYTETracker, STrack
