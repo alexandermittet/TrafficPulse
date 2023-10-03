@@ -8,6 +8,8 @@ PROJECT_ROOT_DIR = os.path.join(SRC_DIR, os.pardir)
 # Video path:
 VIDEO_PATH = os.path.join(PROJECT_ROOT_DIR, "data", "test.mp4")
 
+# Benchmarking test set path:
+TEST_SET_PATH = os.path.join(PROJECT_ROOT_DIR, "data", "benchmark")
 
 # Create the absolute path to the model
 MODEL = os.path.join(PROJECT_ROOT_DIR, "models", "yolov8n.pt")
