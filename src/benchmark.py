@@ -4,6 +4,10 @@
 from functions_benchmark import *
 from constants import *
 
-# Entry point of the script
 if __name__ == "__main__":
-    main()
+    # main()
+    # Calculate the MOT metrics
+    motMetricsEnhancedCalculator(
+        "/Users/marcusnsr/Desktop/AoM/src/runs/002/YOLOv8_BB_(10-03_16:52:54).txt",
+        "/Users/marcusnsr/Desktop/AoM/src/runs/001/YOLOv8_BB_(10-03_16:32:15).txt",
+    )

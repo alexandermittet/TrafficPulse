@@ -106,3 +106,4 @@ CLASS_ID = [1, 2, 7]
 compact_datetime = datetime.now().strftime("%m-%d_%H:%M:%S")
 TARGET_VIDEO_NAME = f"YOLOv8_({compact_datetime}).mp4"
 TARGET_CSV_NAME = f"YOLOv8_({compact_datetime}).csv"
+TARGET_BBOX_NAME = f"YOLOv8_BB_({compact_datetime}).txt"

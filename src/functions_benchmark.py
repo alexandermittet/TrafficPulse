@@ -4,6 +4,7 @@ from constants import *
 import cv2
 import os
 import glob
+import motmetrics as mm
 
 
 def get_image_frames_generator(img_paths):
@@ -15,34 +16,6 @@ def get_image_frames_generator(img_paths):
 
 
 def initialize_components_BM(IMG_DIR_PATH, MODEL, BYTETrackerArgs):
-    """
-    Initializes components for object detection and tracking, including setting up the video source,
-    loading the YOLO model, and setting up annotations and line counters.
-
-    Parameters:
-    - USE_WEBCAM (bool): Flag to use webcam as video source. If set to False, uses the video path provided.
-    - VIDEO_PATH (str): Path to the video file to be processed. Only used if USE_WEBCAM is False.
-    - MODEL (str): Path to the YOLO model file.
-    - BYTETrackerArgs (class): Class or function to generate arguments for BYTETracker initialization.
-    - LINE_START (tuple): Starting point (x, y) of the line used in line counting.
-    - LINE_END (tuple): Ending point (x, y) of the line used in line counting.
-
-    Returns:
-    - model (YOLO): Initialized YOLO model.
-    - tracker (BYTETracker): Initialized BYTETracker object.
-    - cap (cv2.VideoCapture): Initialized video capture object.
-    - info (VideoInfo): Information about the video source.
-    - generator (generator): Generator to fetch video frames.
-    - line_counter (LineCounter): Initialized line counter object.
-    - box_annotator (BoxAnnotator): Initialized box annotator for drawing bounding boxes.
-    - line_annotator (LineCounterAnnotator): Initialized line annotator for visualizing the counting line.
-    - CLASS_NAMES_DICT (dict): Dictionary of class names used by the YOLO model.
-
-    Note:
-    Assumes that the YOLO, BYTETracker, VideoInfo, webcam_generator, get_video_frames_generator, LineCounter,
-    BoxAnnotator, LineCounterAnnotator, and ColorPalette classes/functions are imported and available in the same module.
-    """
-
     model = YOLO(MODEL)
     model.fuse()
     CLASS_NAMES_DICT = model.model.names
@@ -81,34 +54,6 @@ def process_frame_BM(
     CLASS_ID,
     box_annotator,
 ):
-    """
-    Process a given frame to detect and annotate objects based on the provided model and parameters.
-
-    Parameters:
-    - frame (numpy.ndarray): The image frame to be processed.
-    - model: The pre-trained model used for object detection.
-    - tracker: The object tracker instance.
-    - CLASS_NAMES_DICT (dict): A dictionary mapping class IDs to their respective class names.
-    - CLASS_ID (list): List of class IDs of interest for filtering detections.
-    - line_counter: An instance responsible for counting objects crossing a predefined line.
-    - box_annotator: An instance responsible for annotating bounding boxes on the frame.
-    - line_annotator: An instance responsible for annotating lines on the frame.
-
-    Returns:
-    - numpy.ndarray: The annotated frame.
-
-    The function carries out the following tasks:
-    1. Use the model to detect objects in the frame.
-    2. Convert detection results to a standard format.
-    3. Filter out detections based on the provided class IDs.
-    4. Update the tracker with the filtered detections.
-    5. Match the detections with tracker IDs.
-    6. Filter detections again based on valid tracker IDs.
-    7. Annotate the frame with the area of detected objects and a bounding box.
-    8. Generate labels for detections using class names, confidence, and tracker IDs.
-    9. Update the line counter based on detections.
-    10. Annotate the frame with the generated labels and lines.
-    """
     # Get the detection results from the model for the given frame
     results = model(frame)
 
@@ -123,6 +68,10 @@ def process_frame_BM(
         .numpy()
         .astype(int),  # Class IDs of detections
     )
+
+    # Getting some stuff for the benchmark
+    frame_id = tracker.frame_id
+    xywh = results[0].boxes.xywh.cpu().numpy()
 
     # Create a mask to filter detections based on the predefined CLASS_ID list
     mask = np.array(
@@ -184,10 +133,136 @@ def process_frame_BM(
 
     # Annotate the frame with the detection boxes and associated labels
     frame = box_annotator.annotate(frame=frame, detections=detections, labels=labels)
-    # Annotate the frame with any additional lines
 
+    # Initialize empty list to store your predictions
+    predictions = []
+
+    # Loop over all detections in the frame
+    for i, track_id in enumerate(tracker_id):
+        # Skip None values
+        if track_id is None:
+            continue
+
+        # Create a single prediction record
+        prediction = {
+            "FrameId": frame_id,
+            "Id": track_id,
+            "X": (xywh[i][0] - (xywh[i][2] / 2)),
+            "Y": (xywh[i][1] - (xywh[i][3] / 2)),
+            "Width": xywh[i][2],
+            "Height": xywh[i][3],
+            "Confidence": detections.confidence[i]
+            if i < len(detections.confidence)
+            else 0,
+            "ClassId": detections.class_id[i] if i < len(detections.class_id) else 0,
+            "Filler1": -1,
+            "Filler2": -1,
+            "Filler3": -1,
+        }
+
+        # Append to predictions list
+        predictions.append(prediction)
+
+    filename = get_next_video_path(video_name=TARGET_BBOX_NAME)
+
+    if predictions:
+        keys = predictions[0].keys()
+        # Check if file exists
+        if not os.path.exists(filename):
+            with open(filename, "w", newline="") as output_file:
+                dict_writer = csv.DictWriter(output_file, fieldnames=keys)
+                dict_writer.writeheader()
+
+        if predictions:  # Check if the list is not empty
+            keys = predictions[0].keys()
+            with open(filename, "a+", newline="") as output_file:
+                dict_writer = csv.DictWriter(output_file, fieldnames=keys)
+                dict_writer.writerows(predictions)
     # Return the annotated frame
     return frame
+
+
+def motMetricsEnhancedCalculator(gtSource, tSource):
+    # import required packages
+    import motmetrics as mm
+    import numpy as np
+
+    # load ground truth
+    gt = np.loadtxt(gtSource, delimiter=",")
+
+    # load tracking output
+    t = np.loadtxt(tSource, delimiter=",")
+
+    # Create an accumulator that will be updated during each frame
+    acc = mm.MOTAccumulator(auto_id=True)
+
+    # Max frame number maybe different for gt and t files
+    for frame in range(int(gt[:, 0].max())):
+        frame += 1  # detection and frame numbers begin at 1
+
+        # select id, x, y, width, height for current frame
+        # required format for distance calculation is X, Y, Width, Height \
+        # We already have this format
+        gt_dets = gt[gt[:, 0] == frame, 1:6]  # select all detections in gt
+        t_dets = t[t[:, 0] == frame, 1:6]  # select all detections in t
+
+        C = mm.distances.iou_matrix(
+            gt_dets[:, 1:], t_dets[:, 1:], max_iou=0.5
+        )  # format: gt, t
+
+        # Call update once for per frame.
+        # format: gt object ids, t object ids, distance
+        acc.update(
+            gt_dets[:, 0].astype("int").tolist(), t_dets[:, 0].astype("int").tolist(), C
+        )
+
+    mh = mm.metrics.create()
+
+    summary = mh.compute(
+        acc,
+        metrics=[
+            "num_frames",
+            "idf1",
+            "idp",
+            "idr",
+            "recall",
+            "precision",
+            "num_objects",
+            "mostly_tracked",
+            "partially_tracked",
+            "mostly_lost",
+            "num_false_positives",
+            "num_misses",
+            "num_switches",
+            "num_fragmentations",
+            "mota",
+            "motp",
+        ],
+        name="acc",
+    )
+
+    strsummary = mm.io.render_summary(
+        summary,
+        # formatters={'mota' : '{:.2%}'.format},
+        namemap={
+            "idf1": "IDF1",
+            "idp": "IDP",
+            "idr": "IDR",
+            "recall": "Rcll",
+            "precision": "Prcn",
+            "num_objects": "GT",
+            "mostly_tracked": "MT",
+            "partially_tracked": "PT",
+            "mostly_lost": "ML",
+            "num_false_positives": "FP",
+            "num_misses": "FN",
+            "num_switches": "IDsw",
+            "num_fragmentations": "FM",
+            "mota": "MOTA",
+            "motp": "MOTP",
+        },
+    )
+    print(strsummary)
 
 
 def main():
