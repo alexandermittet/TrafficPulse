@@ -12,14 +12,14 @@ VIDEO_PATH = os.path.join(PROJECT_ROOT_DIR, "data", "test.mp4")
 TEST_SET_PATH = os.path.join(PROJECT_ROOT_DIR, "data", "benchmark", "Bike", "img")
 
 # Create the absolute path to the model
-MODEL = os.path.join(PROJECT_ROOT_DIR, "models", "yolov8n.pt")
+MODEL = os.path.join(PROJECT_ROOT_DIR, "models", "yolov8m.pt")
 
 # Use webcam:
 USE_WEBCAM = False
 WEBCAM_ID = 0
 
 # Classes to track:
-CLASS_ID = [1, 2, 7]
+CLASS_ID = [0]
 """
 0: 'person',
 1: 'bicycle',

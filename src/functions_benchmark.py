@@ -5,6 +5,7 @@ import cv2
 import os
 import glob
 import motmetrics as mm
+import pandas as pd
 
 
 def get_image_frames_generator(img_paths):
@@ -69,10 +70,6 @@ def process_frame_BM(
         .astype(int),  # Class IDs of detections
     )
 
-    # Getting some stuff for the benchmark
-    frame_id = tracker.frame_id
-    xywh = results[0].boxes.xywh.cpu().numpy()
-
     # Create a mask to filter detections based on the predefined CLASS_ID list
     mask = np.array(
         [class_id in CLASS_ID for class_id in detections.class_id], dtype=bool
@@ -96,6 +93,10 @@ def process_frame_BM(
         [tracker_id is not None for tracker_id in detections.tracker_id], dtype=bool
     )
     detections.filter(mask=mask, inplace=True)
+
+    # Getting some stuff for the benchmark
+    frame_id = tracker.frame_id
+    xywh = results[0].boxes.xywh.cpu().numpy()
 
     # For each detection, annotate the frame with the bounding box and the area
     for i in range(len(detections.xyxy)):
@@ -154,7 +155,7 @@ def process_frame_BM(
             "Confidence": detections.confidence[i]
             if i < len(detections.confidence)
             else 0,
-            "ClassId": detections.class_id[i] if i < len(detections.class_id) else 0,
+            "ClassId": detections.class_id[i] if i < len(detections.class_id) else -1,
             "Filler1": -1,
             "Filler2": -1,
             "Filler3": -1,
@@ -167,12 +168,6 @@ def process_frame_BM(
 
     if predictions:
         keys = predictions[0].keys()
-        # Check if file exists
-        if not os.path.exists(filename):
-            with open(filename, "w", newline="") as output_file:
-                dict_writer = csv.DictWriter(output_file, fieldnames=keys)
-                dict_writer.writeheader()
-
         if predictions:  # Check if the list is not empty
             keys = predictions[0].keys()
             with open(filename, "a+", newline="") as output_file:
