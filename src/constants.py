@@ -6,18 +6,20 @@ SRC_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT_DIR = os.path.join(SRC_DIR, os.pardir)
 
 # Video path:
-VIDEO_PATH = os.path.join(PROJECT_ROOT_DIR, "data", "test.mp4")
+VIDEO_PATH = os.path.join(PROJECT_ROOT_DIR, "data", "video30s.mp4")
 
+# Benchmarking test set path:
+TEST_SET_PATH = os.path.join(PROJECT_ROOT_DIR, "data", "benchmark", "Bike", "img")
 
 # Create the absolute path to the model
-MODEL = os.path.join(PROJECT_ROOT_DIR, "models", "yolov8n.pt")
+MODEL = os.path.join(PROJECT_ROOT_DIR, "models", "yolov8m.pt")
 
 # Use webcam:
 USE_WEBCAM = False
 WEBCAM_ID = 0
 
 # Classes to track:
-CLASS_ID = [1, 2, 7]
+CLASS_ID = [2]
 """
 0: 'person',
 1: 'bicycle',
@@ -104,3 +106,4 @@ CLASS_ID = [1, 2, 7]
 compact_datetime = datetime.now().strftime("%m-%d_%H:%M:%S")
 TARGET_VIDEO_NAME = f"YOLOv8_({compact_datetime}).mp4"
 TARGET_CSV_NAME = f"YOLOv8_({compact_datetime}).csv"
+TARGET_BBOX_NAME = f"YOLOv8_BB_({compact_datetime}).txt"
