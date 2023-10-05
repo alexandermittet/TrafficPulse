@@ -31,6 +31,7 @@ MANIFEST
 yolov5/ #the yolo repo
 runs/
 benchmark/
+MOT16-13/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
