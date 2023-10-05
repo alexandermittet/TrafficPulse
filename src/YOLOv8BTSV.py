@@ -1,4 +1,4 @@
-# YOLOv8BTSP.py
+# YOLOv8BTSV.py BT(ByteTrack), SV(SuperVision)
 
 # Importing functions and constants:
 from functions import *

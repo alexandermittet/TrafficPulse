@@ -12,6 +12,14 @@ VIDEO_PATH = os.path.join(PROJECT_ROOT_DIR, "data", "test.mp4")
 TEST_SET_PATH = os.path.join(PROJECT_ROOT_DIR, "data", "benchmark", "Bike", "img")
 
 # Create the absolute path to the model
+"""
+Models:
+yolov8n.pt
+yolov8s.pt
+yolov8m.pt
+yolov8l.pt
+yolov8x.pt
+"""
 MODEL = os.path.join(PROJECT_ROOT_DIR, "models", "yolov8m.pt")
 
 # Use webcam:

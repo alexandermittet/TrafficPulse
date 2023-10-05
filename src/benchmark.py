@@ -1,4 +1,4 @@
-# YOLOv8BTSP.py
+# benchmark.py
 
 # Importing functions and constants:
 from functions_benchmark import *
