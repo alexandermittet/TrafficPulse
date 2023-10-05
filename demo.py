@@ -46,7 +46,7 @@ def main():
             model,
             tracker,
             CLASS_NAMES_DICT,
-            CLASS_ID,
+            [2],
             line_counter,
             box_annotator,
             line_annotator,
