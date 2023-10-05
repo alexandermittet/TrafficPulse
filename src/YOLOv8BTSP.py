@@ -4,10 +4,6 @@
 from functions import *
 from constants import *
 
-# Settings
-LINE_START = Point(0, 250)
-LINE_END = Point(1280, 250)
-
 
 # Using a dataclass to represent arguments for BYTETracker
 @dataclass(frozen=True)
@@ -21,6 +17,16 @@ class BYTETrackerArgs:
 
 
 def main():
+    point1, point2 = select_two_points_from_video(VIDEO_PATH)
+
+    if point1 and point2:
+        LINE_START = Point(*point1)
+        LINE_END = Point(*point2)
+        print("Selected points:", point1, point2)
+    else:
+        print("Points were not selected properly.")
+        exit()
+
     # Initialize required components for processing the video
     (
         model,
