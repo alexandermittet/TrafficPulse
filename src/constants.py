@@ -6,7 +6,7 @@ SRC_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT_DIR = os.path.join(SRC_DIR, os.pardir)
 
 # Video path:
-VIDEO_PATH = os.path.join(PROJECT_ROOT_DIR, "data", "video30s.mp4")
+VIDEO_PATH = os.path.join(PROJECT_ROOT_DIR, "data", "test.mp4")
 
 
 # Create the absolute path to the model
@@ -17,7 +17,7 @@ USE_WEBCAM = False
 WEBCAM_ID = 0
 
 # Classes to track:
-CLASS_ID = [2]
+CLASS_ID = [1, 2, 7]
 """
 0: 'person',
 1: 'bicycle',
