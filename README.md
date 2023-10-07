@@ -2,6 +2,12 @@
 
 ## This project is about automatic traffic data collection with Machine Learning.
 
+### Demo
+Download all requirements by doing: pip install -r requirements.txt
+Run demo in root folder with: python3 demo.py
+You should then select two points by clicking on the screen which will act as the line counter
+If everything has been installed properly then it will run the tracker on a 30s video
+
 ### Standards:
 - Pep8 Standard
 - Every function must have a docstring

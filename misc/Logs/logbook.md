@@ -75,3 +75,15 @@
 - IRL:
   - We went out to dr. louises bro and did a real life test on bikes againt manual counting and sensor counting (results in run 1-4 on Marucs' mac)
   - We read and discussed the bytetrack paper as we promised Bjørn
+
+#### 30sept-5okt. sept 2023
+- IRL:
+  - We finish our last workshop
+  - Anton has joined or business case
+  - We pitched infront of a board of judges
+
+- Technical:
+  - We have written a demo.py such that people can get a quick demo
+  - We wrote a benchmark program with motmetrics and got a hold of the MOT datasets which we can benchmark against
+  - We have been cleaning up our code/our github
+  - We will soon create a prototype and conduct more tests in the field
