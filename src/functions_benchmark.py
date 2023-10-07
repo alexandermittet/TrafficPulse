@@ -1,3 +1,7 @@
+"""
+All the functions required for the benchmarking of the model.
+"""
+
 from functions import *
 from constants import *
 

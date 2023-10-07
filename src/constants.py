@@ -6,12 +6,20 @@ SRC_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT_DIR = os.path.join(SRC_DIR, os.pardir)
 
 # Video path:
-VIDEO_PATH = os.path.join(PROJECT_ROOT_DIR, "data", "video30s.mp4")
+VIDEO_PATH = os.path.join(PROJECT_ROOT_DIR, "data", "video3.mp4")
 
 # Benchmarking test set path:
 TEST_SET_PATH = os.path.join(PROJECT_ROOT_DIR, "data", "benchmark", "Bike", "img")
 
 # Create the absolute path to the model
+"""
+Models:
+yolov8n.pt
+yolov8s.pt
+yolov8m.pt
+yolov8l.pt
+yolov8x.pt
+"""
 MODEL = os.path.join(PROJECT_ROOT_DIR, "models", "yolov8m.pt")
 
 # Use webcam:
