@@ -76,7 +76,7 @@
   - We went out to dr. louises bro and did a real life test on bikes againt manual counting and sensor counting (results in run 1-4 on Marucs' mac)
   - We read and discussed the bytetrack paper as we promised Bjørn
 
-#### 30sept-5okt. sept 2023
+#### 30sept-5okt sept 2023
 - IRL:
   - We finish our last workshop
   - Anton has joined or business case
@@ -87,3 +87,11 @@
   - We wrote a benchmark program with motmetrics and got a hold of the MOT datasets which we can benchmark against
   - We have been cleaning up our code/our github
   - We will soon create a prototype and conduct more tests in the field
+
+#### 6-8. okt 2023
+- IRL:
+  - We have built our first prototype with a raspberry pi, currently it just gets video feed and downloads it to a usb to be run on a more computational heavy machine.
+
+- Technical:
+  - Cleaning up the github repo
+  - Begun work on trying to make our program runable on GPU
