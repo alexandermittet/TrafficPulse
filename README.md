@@ -15,4 +15,6 @@
 - Pre-commit: Enforces PEP8 through black etc.
 
 ### Requirements:
+- Before freezing requirements you need to make sure that it is only the nessesary packages you have installed.
 - pip freeze > requirements.txt
+- pip install -r requirements.txt
