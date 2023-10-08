@@ -20,7 +20,7 @@ yolov8m.pt
 yolov8l.pt
 yolov8x.pt
 """
-MODEL = os.path.join(PROJECT_ROOT_DIR, "models", "yolov8m.pt")
+MODEL = os.path.join(PROJECT_ROOT_DIR, "models", "yolov8n.pt")
 
 # Use webcam:
 USE_WEBCAM = False
