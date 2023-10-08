@@ -1,158 +1,49 @@
-absl-py==2.0.0
-aiofiles==23.2.1
-annotated-types==0.5.0
-anyio==4.0.0
-# appnope @ file:///Users/ktietz/ci_310/appnope_1643965056645/work
-# asttokens @ file:///opt/conda/conda-bld/asttokens_1646925590279/work
-# backcall @ file:///home/ktietz/src/ci/backcall_1611930011877/work
-blis==0.7.11
-Brotli==1.1.0
-cachetools==5.3.1
-catalogue==2.0.9
 certifi==2023.7.22
-charset-normalizer==3.2.0
-click==8.1.7
-coloredlogs==15.0.1
-comm==0.1.4
-confection==0.1.3
-contourpy==1.1.0
-cycler==0.11.0
-cymem==2.0.8
-Cython==3.0.2
+charset-normalizer==3.3.0
+contourpy==1.1.1
+cycler==0.12.1
+Cython==3.0.3
 cython-bbox==0.1.3
-dataclasses-json==0.6.0
-# debugpy @ file:///private/var/folders/k1/30mswbxs7r1g6zwn8y4fyt500000gp/T/abs_563_nwtkoc/croot/debugpy_1690905063850/work
-# decorator @ file:///opt/conda/conda-bld/decorator_1643638310831/work
-duckduckgo-search==3.8.5
-# exceptiongroup @ file:///private/var/folders/nz/j6p8yfhx1mv_0grj5xl4650h0000gp/T/abs_39x5d_sfd0/croot/exceptiongroup_1668714346145/work
-# executing @ file:///opt/conda/conda-bld/executing_1646925071911/work
-fastai==2.7.12
-fastcore==1.5.29
-fastdownload==0.0.7
-fastprogress==1.0.3
-filelock==3.12.3
-filterpy==1.4.5
-flatbuffers==23.5.26
-fonttools==4.42.1
-gitdb==4.0.10
-GitPython==3.1.34
-gmpy2==2.1.5
-google-auth==2.23.0
-google-auth-oauthlib==1.0.0
-grpcio==1.58.0
-h11==0.14.0
-h2==4.1.0
-h5py==3.9.0
-hpack==4.0.0
-httpcore==0.18.0
-httpx==0.25.0
-humanfriendly==10.0
-hyperframe==6.0.1
+dataclasses-json==0.6.1
+filelock==3.12.4
+fonttools==4.43.1
 idna==3.4
-imageio==2.31.3
-# ipykernel @ file:///private/var/folders/k1/30mswbxs7r1g6zwn8y4fyt500000gp/T/abs_98tee4lcge/croot/ipykernel_1691121640975/work
-# ipython @ file:///private/var/folders/nz/j6p8yfhx1mv_0grj5xl4650h0000gp/T/abs_6599f73fa7/croot/ipython_1694181355402/work
-ipywidgets==8.1.1
-# jedi @ file:///private/var/folders/nz/j6p8yfhx1mv_0grj5xl4650h0000gp/T/croot-f1t6hma6/jedi_1644315882177/work
+importlib-resources==6.1.0
 Jinja2==3.1.2
-joblib==1.3.2
-# jupyter_client @ file:///private/var/folders/nz/j6p8yfhx1mv_0grj5xl4650h0000gp/T/abs_701yya0pqm/croot/jupyter_client_1680171868326/work
-# jupyter_core @ file:///private/var/folders/nz/j6p8yfhx1mv_0grj5xl4650h0000gp/T/abs_d1sy1hlz9t/croot/jupyter_core_1679906585151/work
-jupyterlab-widgets==3.0.9
 kiwisolver==1.4.5
-langcodes==3.3.0
 lap==0.4.0
-lazy_loader==0.3
-loguru==0.7.2
-lxml==4.9.3
-Markdown==3.4.4
-markdown-it-py==3.0.0
 MarkupSafe==2.1.3
 marshmallow==3.20.1
 matplotlib==3.7.2
-# matplotlib-inline @ file:///private/var/folders/nz/j6p8yfhx1mv_0grj5xl4650h0000gp/T/abs_f6fdc0hldi/croots/recipe/matplotlib-inline_1662014472341/work
-mdurl==0.1.2
 motmetrics==1.4.0
 mpmath==1.3.0
-murmurhash==1.0.10
 mypy-extensions==1.0.0
-# nest-asyncio @ file:///private/var/folders/nz/j6p8yfhx1mv_0grj5xl4650h0000gp/T/abs_6b_e0dr4lw/croot/nest-asyncio_1672387130036/work
 networkx==3.1
-ninja==1.11.1
-numpy==1.26.0
-oauthlib==3.2.2
+numpy @ file:///private/var/folders/nz/j6p8yfhx1mv_0grj5xl4650h0000gp/T/abs_362zs5g963/croot/numpy_and_numpy_base_1695830450707/work/dist/numpy-1.26.0-cp39-cp39-macosx_11_0_arm64.whl#sha256=e37b41d15b4b8b2adde02a2f2a3e74daaccdfa5962f4470c1c266acd01ffd2a0
 onemetric==0.1.2
-onnx==1.14.1
-onnx-simplifier==0.4.33
-onnxruntime==1.15.1
 opencv-python==4.8.0.76
-# packaging @ file:///private/var/folders/k1/30mswbxs7r1g6zwn8y4fyt500000gp/T/abs_6dm6d4jd_t/croot/packaging_1693575176524/work
-pandas==2.1.0
-# parso @ file:///opt/conda/conda-bld/parso_1641458642106/work
-pathy==0.10.2
-# pexpect @ file:///tmp/build/80754af9/pexpect_1605563209008/work
-# pickleshare @ file:///tmp/build/80754af9/pickleshare_1606932040724/work
-Pillow==10.0.0
-# platformdirs @ file:///private/var/folders/k1/30mswbxs7r1g6zwn8y4fyt500000gp/T/abs_a8u4fy8k9o/croot/platformdirs_1692205661656/work
-preshed==3.0.9
-# prompt-toolkit @ file:///private/var/folders/nz/j6p8yfhx1mv_0grj5xl4650h0000gp/T/abs_0blbsngvis/croot/prompt-toolkit_1672387317724/work
-protobuf==4.24.3
-# psutil @ file:///private/var/folders/nz/j6p8yfhx1mv_0grj5xl4650h0000gp/T/abs_1310b568-21f4-4cb0-b0e3-2f3d31e39728k9coaga5/croots/recipe/psutil_1656431280844/work
-# ptyprocess @ file:///tmp/build/80754af9/ptyprocess_1609355006118/work/dist/ptyprocess-0.7.0-py2.py3-none-any.whl
-# pure-eval @ file:///opt/conda/conda-bld/pure_eval_1646925070566/work
+packaging==23.2
+pandas==2.1.1
+Pillow==10.0.1
+psutil==5.9.5
 py-cpuinfo==9.0.0
-pyasn1==0.5.0
-pyasn1-modules==0.3.0
-pydantic==2.3.0
-pydantic_core==2.6.3
-# Pygments @ file:///private/var/folders/nz/j6p8yfhx1mv_0grj5xl4650h0000gp/T/abs_29bs9f_dh9/croot/pygments_1684279974747/work
 pyparsing==3.0.9
-# python-dateutil @ file:///tmp/build/80754af9/python-dateutil_1626374649649/work
+python-dateutil==2.8.2
 pytz==2023.3.post1
-PyWavelets==1.4.1
 PyYAML==6.0.1
-# pyzmq @ file:///private/var/folders/nz/j6p8yfhx1mv_0grj5xl4650h0000gp/T/abs_23n9bfwjq5/croot/pyzmq_1686601381911/work
 requests==2.31.0
-requests-oauthlib==1.3.1
-rich==13.5.3
-rsa==4.9
-scikit-image==0.21.0
-scikit-learn==1.3.1
-scipy==1.11.2
-seaborn==0.12.2
-simple-online-realtime-tracking==0.3
-# six @ file:///tmp/build/80754af9/six_1644875935023/work
-smart-open==6.4.0
-smmap==5.0.0
-sniffio==1.3.0
-socksio==1.0.0
-spacy==3.6.1
-spacy-legacy==3.0.12
-spacy-loggers==1.0.5
-srsly==2.4.8
-# stack-data @ file:///opt/conda/conda-bld/stack_data_1646927590127/work
+scipy==1.11.3
+seaborn==0.13.0
+six==1.16.0
 supervision==0.1.0
 sympy==1.12
-tabulate==0.9.0
-tensorboard==2.14.0
-tensorboard-data-server==0.7.1
-thinc==8.1.12
-thop==0.1.1.post2209072238
-threadpoolctl==3.2.0
-tifffile==2023.9.18
 torch==2.0.1
 torchvision==0.15.2
-# tornado @ file:///private/var/folders/k1/30mswbxs7r1g6zwn8y4fyt500000gp/T/abs_28d93aezp2/croot/tornado_1690848278715/work
 tqdm==4.66.1
-# traitlets @ file:///private/var/folders/nz/j6p8yfhx1mv_0grj5xl4650h0000gp/T/abs_6301rd5qbe/croot/traitlets_1671143894285/work
-typer==0.9.0
 typing-inspect==0.9.0
 typing_extensions==4.8.0
 tzdata==2023.3
 ultralytics==8.0.175
-urllib3==1.26.16
-wasabi==1.1.2
-# wcwidth @ file:///Users/ktietz/demo/mc3/conda-bld/wcwidth_1629357192024/work
-Werkzeug==2.3.7
-widgetsnbextension==4.0.9
+urllib3==2.0.6
 xmltodict==0.13.0
+zipp==3.17.0
