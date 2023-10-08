@@ -415,7 +415,7 @@ def get_next_video_path(base_path=HOME, video_name="output.mp4", force_new_run=F
     - str: The next available path for the video inside a numbered run folder.
     """
     # Define the path to the runs folder
-    runs_folder_path = os.path.join(base_path, "src/runs")
+    runs_folder_path = os.path.join(base_path, "runs")
 
     # Create the runs folder if it doesn't exist
     if not os.path.exists(runs_folder_path):
