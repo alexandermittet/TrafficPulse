@@ -1,4 +1,7 @@
 # benchmark.py
+"""
+The main program that runs benchmarking and MOT metrics on a video.
+"""
 
 # Importing functions and constants:
 from functions_benchmark import *

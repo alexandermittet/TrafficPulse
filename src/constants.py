@@ -1,4 +1,7 @@
 # constants.py
+"""
+Constants used in multiple files.
+"""
 import os
 from datetime import datetime
 

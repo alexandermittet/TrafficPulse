@@ -1,4 +1,7 @@
 # functions.py
+"""
+All the functions required for running the model and tracking objects.
+"""
 import os
 import sys
 import numpy as np
@@ -6,7 +9,6 @@ from constants import *
 
 np.float = float  # Fixing numpy change (should be solved in the future)
 HOME = os.getcwd()
-sys.path.append(f"{HOME}/ByteTrack")
 
 import cv2
 import csv
@@ -21,9 +23,8 @@ from supervision.video.sink import VideoSink
 from supervision.notebook.utils import show_frame_in_notebook
 from supervision.tools.detections import Detections, BoxAnnotator
 from Tracker.line_counter import LineCounter, LineCounterAnnotator
-from ByteTrack import yolox
 from ultralytics import YOLO
-from ByteTrack.yolox.tracker.byte_tracker import BYTETracker, STrack
+from Tracker.byte_tracker import BYTETracker, STrack
 from onemetric.cv.utils.iou import box_iou_batch
 from dataclasses import dataclass
 from typing import List
@@ -466,6 +467,19 @@ def webcam_generator(cap):
 
 
 def plot(filename):
+    """
+    Plot the in count and out count for each frame from the CSV file.
+
+    Parameters:
+    - filename (str): The path to the CSV file containing the in and out counts for each frame.
+
+    Notes:
+    - The CSV file should have the following format:
+        ID,In Count,Out Count
+        1,"{class_id: count, ...}","{class_id: count, ...}"
+        2,"{class_id: count, ...}","{class_id: count, ...}"
+        ...
+    """
     # Dictionaries to store the data for each class ID
     ids = []
     in_counts = {}  # {class_id: [counts for each frame]}
@@ -520,6 +534,20 @@ def plot(filename):
 
 
 def select_two_points_from_video(video_path):
+    """
+    Select two points from a video frame.
+
+    Parameters:
+    - video_path (str): The path to the video file.
+
+    Returns:
+    - point1 (tuple): The first point selected.
+    - point2 (tuple): The second point selected.
+
+    Notes:
+    - The function will display the video frame and wait for the user to select two points.
+    """
+
     # Nested function for the mouse click event
     def click_event(event, x, y, flags, params):
         if event == cv2.EVENT_LBUTTONDOWN:
@@ -559,6 +587,9 @@ def select_two_points_from_video(video_path):
 
 
 def main():
+    """
+    The main function that runs the model and tracking on a video or webcam.
+    """
     point1, point2 = select_two_points_from_video(VIDEO_PATH)
 
     if point1 and point2:

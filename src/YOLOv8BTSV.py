@@ -1,4 +1,7 @@
-# YOLOv8BTSV.py BT(ByteTrack), SV(SuperVision)
+# YOLOv8BTSV.py (BT(ByteTrack), SV(SuperVision))
+"""
+The main program that runs tracking on a video or webcam.
+"""
 
 # Importing functions and constants:
 from functions import *
