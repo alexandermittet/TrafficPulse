@@ -1,4 +1,7 @@
 # constants.py
+"""
+Constants used in multiple files.
+"""
 import os
 from datetime import datetime
 
@@ -6,7 +9,7 @@ SRC_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT_DIR = os.path.join(SRC_DIR, os.pardir)
 
 # Video path:
-VIDEO_PATH = os.path.join(PROJECT_ROOT_DIR, "data", "video3.mp4")
+VIDEO_PATH = os.path.join(PROJECT_ROOT_DIR, "data", "highway.mp4")
 
 # Benchmarking test set path:
 TEST_SET_PATH = os.path.join(PROJECT_ROOT_DIR, "data", "benchmark", "Bike", "img")
@@ -20,7 +23,7 @@ yolov8m.pt
 yolov8l.pt
 yolov8x.pt
 """
-MODEL = os.path.join(PROJECT_ROOT_DIR, "models", "yolov8m.pt")
+MODEL = os.path.join(PROJECT_ROOT_DIR, "models", "yolov8n.pt")
 
 # Use webcam:
 USE_WEBCAM = False

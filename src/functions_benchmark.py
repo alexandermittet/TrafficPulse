@@ -1,3 +1,4 @@
+# functions_benchmark.py
 """
 All the functions required for the benchmarking of the model.
 """
@@ -5,11 +6,8 @@ All the functions required for the benchmarking of the model.
 from functions import *
 from constants import *
 
-import cv2
-import os
 import glob
 import motmetrics as mm
-import pandas as pd
 
 
 def get_image_frames_generator(img_paths):
@@ -21,6 +19,22 @@ def get_image_frames_generator(img_paths):
 
 
 def initialize_components_BM(IMG_DIR_PATH, MODEL, BYTETrackerArgs):
+    """
+    Initializes the required components for processing the video.
+
+    Args:
+        IMG_DIR_PATH (str): Path to the directory containing the images.
+        MODEL (str): Path to the model.
+        BYTETrackerArgs (class): Class containing the arguments for the tracker.
+
+    Returns:
+        model (YOLO): The YOLO model.
+        tracker (BYTETracker): The tracker.
+        info (VideoInfo): The video info.
+        generator (generator): The generator for the frames.
+        box_annotator (BoxAnnotator): The box annotator.
+        CLASS_NAMES_DICT (dict): The dictionary containing the class names.
+    """
     model = YOLO(MODEL)
     model.fuse()
     CLASS_NAMES_DICT = model.model.names
@@ -59,6 +73,20 @@ def process_frame_BM(
     CLASS_ID,
     box_annotator,
 ):
+    """
+    Processes a single frame.
+
+    Args:
+        frame (np.ndarray): The frame to process.
+        model (YOLO): The YOLO model.
+        tracker (BYTETracker): The tracker.
+        CLASS_NAMES_DICT (dict): The dictionary containing the class names.
+        CLASS_ID (list): The list of class IDs to track.
+        box_annotator (BoxAnnotator): The box annotator.
+
+    Returns:
+        frame (np.ndarray): The processed frame.
+    """
     # Get the detection results from the model for the given frame
     results = model(frame)
 
@@ -182,14 +210,17 @@ def process_frame_BM(
 
 
 def motMetricsEnhancedCalculator(gtSource, tSource):
-    # import required packages
-    import motmetrics as mm
-    import numpy as np
+    """
+    Calculates the MOT metrics for the given ground truth and tracking output files.
 
-    # load ground truth
+    Args:
+        gtSource (str): Path to the ground truth file.
+        tSource (str): Path to the tracking output file.
+    """
+    # Load ground truth
     gt = np.loadtxt(gtSource, delimiter=",")
 
-    # load tracking output
+    # Load tracking output
     t = np.loadtxt(tSource, delimiter=",")
 
     # Create an accumulator that will be updated during each frame
@@ -199,18 +230,18 @@ def motMetricsEnhancedCalculator(gtSource, tSource):
     for frame in range(int(gt[:, 0].max())):
         frame += 1  # detection and frame numbers begin at 1
 
-        # select id, x, y, width, height for current frame
-        # required format for distance calculation is X, Y, Width, Height \
+        # Select id, x, y, width, height for current frame
+        # Required format for distance calculation is X, Y, Width, Height \
         # We already have this format
-        gt_dets = gt[gt[:, 0] == frame, 1:6]  # select all detections in gt
-        t_dets = t[t[:, 0] == frame, 1:6]  # select all detections in t
+        gt_dets = gt[gt[:, 0] == frame, 1:6]  # Select all detections in gt
+        t_dets = t[t[:, 0] == frame, 1:6]  # Select all detections in t
 
         C = mm.distances.iou_matrix(
             gt_dets[:, 1:], t_dets[:, 1:], max_iou=0.5
-        )  # format: gt, t
+        )  # Format: gt, t
 
         # Call update once for per frame.
-        # format: gt object ids, t object ids, distance
+        # Format: gt object ids, t object ids, distance
         acc.update(
             gt_dets[:, 0].astype("int").tolist(), t_dets[:, 0].astype("int").tolist(), C
         )
@@ -242,7 +273,7 @@ def motMetricsEnhancedCalculator(gtSource, tSource):
 
     strsummary = mm.io.render_summary(
         summary,
-        # formatters={'mota' : '{:.2%}'.format},
+        # Formatters={'mota' : '{:.2%}'.format},
         namemap={
             "idf1": "IDF1",
             "idp": "IDP",
@@ -265,6 +296,9 @@ def motMetricsEnhancedCalculator(gtSource, tSource):
 
 
 def main():
+    """
+    The main function for benchmarking.
+    """
     # Initialize required components for processing the video
     (
         model,
