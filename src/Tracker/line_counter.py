@@ -37,19 +37,21 @@ class LineCounter:
 
             # we check if all four anchors of bbox are on the same side of vector
             x1, y1, x2, y2 = xyxy
-            anchors = [
-                Point(x=x1, y=y1),
-                Point(x=x1, y=y2),
-                Point(x=x2, y=y1),
-                Point(x=x2, y=y2),
-            ]
-            triggers = [self.vector.is_in(point=anchor) for anchor in anchors]
+            rect = (int(x1), int(y1), int(x2 - x1), int(y2 - y1))
+            intersection = cv2.clipLine(
+                rect,
+                self.vector.start.as_xy_int_tuple(),
+                self.vector.end.as_xy_int_tuple(),
+            )
 
-            # detection is partially in and partially out
-            if len(set(triggers)) == 2:
+            if not intersection[0]:  # if there's no intersection, continue
                 continue
 
-            tracker_state = triggers[0]
+            center = Point(x=(x1 + x2) / 2, y=(y1 + y2) / 2)
+            is_center_above = self.vector.is_in(point=center)
+
+            tracker_state = is_center_above
+
             # handle new detection
             if tracker_id not in self.tracker_state:
                 self.tracker_state[tracker_id] = tracker_state
