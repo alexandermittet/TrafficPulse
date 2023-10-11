@@ -72,6 +72,10 @@ db.sqlite3-journal
 instance/
 .webassets-cache
 
+# Visual Studio Code
+AoM.code-workspace
+
+
 # Scrapy stuff:
 .scrapy
 
