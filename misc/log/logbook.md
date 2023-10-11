@@ -95,3 +95,7 @@
 - Technical:
   - Cleaning up the github repo
   - Begun work on trying to make our program runable on GPU
+
+#### 10. okt 2023
+- Technical:
+  - Fixed the line counter because originally it had infinite length even though we have it a start and stop point. Now it only counts if it touches the line

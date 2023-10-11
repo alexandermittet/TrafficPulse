@@ -20,7 +20,6 @@ from supervision.geometry.dataclasses import Point
 from supervision.video.dataclasses import VideoInfo
 from supervision.video.source import get_video_frames_generator
 from supervision.video.sink import VideoSink
-from supervision.notebook.utils import show_frame_in_notebook
 from supervision.tools.detections import Detections, BoxAnnotator
 from Tracker.line_counter import LineCounter, LineCounterAnnotator
 from ultralytics import YOLO
@@ -178,9 +177,7 @@ def dectect_track_matcher(detections: Detections, tracks: List[STrack]) -> Detec
     return ids
 
 
-def initialize_components(
-    USE_WEBCAM, VIDEO_PATH, MODEL, BYTETrackerArgs, LINE_START, LINE_END
-):
+def initialize_components(USE_WEBCAM, VIDEO_PATH, MODEL, BYTETrackerArgs, lines):
     """
     Initializes components for object detection and tracking, including setting up the video source,
     loading the YOLO model, and setting up annotations and line counters.
@@ -231,8 +228,10 @@ def initialize_components(
         # Set the generator to the video frames generator
         generator = get_video_frames_generator(VIDEO_PATH)
 
-    # Init line counter and annotators
-    line_counter = LineCounter(start=LINE_START, end=LINE_END)
+    # Initialize multiple LineCounter objects for each line
+    line_counters = [
+        LineCounter(start=Point(*line[0]), end=Point(*line[1])) for line in lines
+    ]
     box_annotator = BoxAnnotator(
         color=ColorPalette(),
         thickness=2,
@@ -248,7 +247,7 @@ def initialize_components(
         cap,
         info,
         generator,
-        line_counter,
+        line_counters,
         box_annotator,
         line_annotator,
         CLASS_NAMES_DICT,
@@ -261,7 +260,7 @@ def process_frame(
     tracker,
     CLASS_NAMES_DICT,
     CLASS_ID,
-    line_counter,
+    line_counters,
     box_annotator,
     line_annotator,
 ):
@@ -366,38 +365,15 @@ def process_frame(
         for _, confidence, class_id, tracker_id in detections
     ]
 
-    # Update the line counter with the new detections
-    line_counter.update(detections=detections)
-
-    # Check if the file exists
-    filename = get_next_video_path(video_name=TARGET_CSV_NAME)
-    file_exists = os.path.exists(filename)
-
-    with open(filename, "a", newline="") as f:  # Open the file in append mode
-        writer = csv.writer(f)
-
-        # If the file didn't exist before, write the headers
-        if not file_exists:
-            writer.writerow(["ID", "In Count", "Out Count"])
-
-        # Get the next ID
-        # If the file is empty, start with 1, otherwise get the next ID
-        next_id = 1
-        if file_exists:
-            with open(filename, "r", newline="") as read_f:
-                rows = list(csv.reader(read_f))
-                last_row = rows[-1] if rows else None
-                if last_row:
-                    next_id = int(last_row[0]) + 1  # Increase ID by 1 from the last row
-
-        writer.writerow(
-            [next_id, str(line_counter.in_count), str(line_counter.out_count)]
-        )
-
     # Annotate the frame with the detection boxes and associated labels
     frame = box_annotator.annotate(frame=frame, detections=detections, labels=labels)
-    # Annotate the frame with any additional lines
-    line_annotator.annotate(frame=frame, line_counter=line_counter)
+    # Update each line counter with the new detections
+    for line_counter in line_counters:
+        line_counter.update(detections=detections)
+        # Annotate the frame with any additional lines
+        line_annotator.annotate(frame=frame, line_counter=line_counter)
+
+    save_counts_to_csv(line_counters)
 
     # Return the annotated frame
     return frame
@@ -530,75 +506,102 @@ def plot(filename):
     image_path = filename.replace(".csv", ".png")
     plt.savefig(image_path)
 
-    plt.show()
 
-
-def select_two_points_from_video(video_path):
+def plot_multiple(filenames):
     """
-    Select two points from a video frame.
+    Plot the in count and out count for each frame from multiple CSV files.
+
+    Parameters:
+    - filenames (list): A list of paths to the CSV files containing the in and out counts for each frame.
+    """
+    for filename in filenames:
+        plot(filename)
+
+
+def select_lines_from_video(video_path, n):
+    """
+    Select n lines (2n points) from a video frame.
 
     Parameters:
     - video_path (str): The path to the video file.
+    - n (int): The number of lines to select.
 
     Returns:
-    - point1 (tuple): The first point selected.
-    - point2 (tuple): The second point selected.
-
-    Notes:
-    - The function will display the video frame and wait for the user to select two points.
+    - lines (list): A list of lines. Each line is represented by a tuple of two points.
     """
 
-    # Nested function for the mouse click event
     def click_event(event, x, y, flags, params):
         if event == cv2.EVENT_LBUTTONDOWN:
             points.append((x, y))
-            if len(points) == 2:
-                cv2.line(frame, points[0], points[1], (0, 255, 0), 2)
+            if len(points) % 2 == 0:  # Every two points, draw a line
+                cv2.line(frame, points[-2], points[-1], (0, 255, 0), 2)
                 cv2.imshow("image", frame)
 
-    # Local list to store points
     points = []
+    lines = []
 
-    # Read video and get the first frame
     cap = cv2.VideoCapture(video_path)
     ret, frame = cap.read()
 
-    # Check if frame reading was successful
     if not ret:
         print("Failed to read video")
-        return None, None
+        return []
 
-    # Set the callback function for mouse events
     cv2.imshow("image", frame)
     cv2.setMouseCallback("image", click_event)
 
-    # Wait for two points to be selected
-    cv2.waitKey(0)
+    # Wait for 2n points (n lines) to be selected or 'q' key pressed to exit early
+    while len(points) < 2 * n:
+        if cv2.waitKey(10) & 0xFF == ord("q"):
+            break
 
-    # Release video and close window
+    # Group the points into lines
+    for i in range(0, len(points), 2):
+        if i + 1 < len(points):
+            lines.append((points[i], points[i + 1]))
+
     cap.release()
     cv2.destroyAllWindows()
 
-    # Return the selected points
-    if len(points) == 2:
-        return points[0], points[1]
-    else:
-        return None, None
+    return lines
+
+
+def save_counts_to_csv(line_counters):
+    for i, line_counter in enumerate(line_counters):
+        # Modify the filename to include line identifier (e.g., line_1, line_2, etc.)
+        filename = get_next_video_path(video_name=f"line_{i+1}_{TARGET_CSV_NAME}")
+        file_exists = os.path.exists(filename)
+
+        with open(filename, "a", newline="") as f:  # Open the file in append mode
+            writer = csv.writer(f)
+
+            # If the file didn't exist before, write the headers
+            if not file_exists:
+                writer.writerow(["ID", "In Count", "Out Count"])
+
+            # Get the next ID
+            # If the file is empty, start with 1, otherwise get the next ID
+            next_id = 1
+            if file_exists:
+                with open(filename, "r", newline="") as read_f:
+                    rows = list(csv.reader(read_f))
+                    last_row = rows[-1] if rows else None
+                    if last_row:
+                        next_id = (
+                            int(last_row[0]) + 1
+                        )  # Increase ID by 1 from the last row
+
+            writer.writerow(
+                [next_id, str(line_counter.in_count), str(line_counter.out_count)]
+            )
 
 
 def main():
     """
     The main function that runs the model and tracking on a video or webcam.
     """
-    point1, point2 = select_two_points_from_video(VIDEO_PATH)
-
-    if point1 and point2:
-        LINE_START = Point(*point1)
-        LINE_END = Point(*point2)
-        print("Selected points:", point1, point2)
-    else:
-        print("Points were not selected properly.")
-        exit()
+    n = int(input("Enter the number of lines you want to select: "))
+    lines = select_lines_from_video(VIDEO_PATH, n)
 
     # Initialize required components for processing the video
     (
@@ -611,9 +614,7 @@ def main():
         box_annotator,
         line_annotator,
         CLASS_NAMES_DICT,
-    ) = initialize_components(
-        USE_WEBCAM, VIDEO_PATH, MODEL, BYTETrackerArgs, LINE_START, LINE_END
-    )
+    ) = initialize_components(USE_WEBCAM, VIDEO_PATH, MODEL, BYTETrackerArgs, lines)
 
     # VideoSink helps in writing the processed frames to a new video
     with VideoSink(
@@ -654,8 +655,12 @@ def main():
     if USE_WEBCAM:
         cap.release()
 
-    csv_file_path = get_next_video_path(video_name=TARGET_CSV_NAME)
-    plot(csv_file_path)
+    # Assuming filenames is a list of paths to your CSV files
+    filenames = [
+        get_next_video_path(video_name=f"line_{i+1}_{TARGET_CSV_NAME}")
+        for i in range(n)
+    ]  # Adjust N as needed
+    plot_multiple(filenames)
 
     # Destroy all OpenCV windows
     cv2.destroyAllWindows()
