@@ -28,6 +28,7 @@ from onemetric.cv.utils.iou import box_iou_batch
 from dataclasses import dataclass
 from typing import List
 from tqdm import tqdm
+from plots import plot_multiple
 
 
 # Using a dataclass to represent arguments for BYTETracker
@@ -177,6 +178,52 @@ def dectect_track_matcher(detections: Detections, tracks: List[STrack]) -> Detec
     return ids
 
 
+def grid_lines(n, m, VIDEO_PATH):
+    """
+    Generates a grid of n*m lines that span the entire frame.
+
+    Args:
+    n (int): Number of vertical lines.
+    m (int): Number of horizontal lines.
+    VIDEO_PATH (str): Path to the video file.
+
+    Returns:
+    list: List of lines where each line is represented as a tuple of two points.
+    """
+    # Get the first frame of the video
+    cap = cv2.VideoCapture(VIDEO_PATH)
+    ret, first_frame = cap.read()
+    if not ret:
+        print("Failed to read video")
+        return []
+    cap.release()
+
+    # Get the height and width of the frame
+    height, width, _ = first_frame.shape
+
+    # Calculate the spacing for vertical and horizontal lines
+    vertical_spacing = width // (n + 1)
+    horizontal_spacing = height // (m + 1)
+
+    lines = []
+
+    # Generate vertical lines
+    for i in range(1, n + 1):
+        x = i * vertical_spacing
+        start_point = (x, 0)
+        end_point = (x, height)
+        lines.append((start_point, end_point))
+
+    # Generate horizontal lines
+    for j in range(1, m + 1):
+        y = j * horizontal_spacing
+        start_point = (0, y)
+        end_point = (width, y)
+        lines.append((start_point, end_point))
+
+    return lines
+
+
 def initialize_components(USE_WEBCAM, VIDEO_PATH, MODEL, BYTETrackerArgs, lines):
     """
     Initializes components for object detection and tracking, including setting up the video source,
@@ -232,6 +279,7 @@ def initialize_components(USE_WEBCAM, VIDEO_PATH, MODEL, BYTETrackerArgs, lines)
     line_counters = [
         LineCounter(start=Point(*line[0]), end=Point(*line[1])) for line in lines
     ]
+
     box_annotator = BoxAnnotator(
         color=ColorPalette(),
         thickness=2,
@@ -293,7 +341,7 @@ def process_frame(
     10. Annotate the frame with the generated labels and lines.
     """
     # Get the detection results from the model for the given frame
-    results = model(frame)
+    results = model.predict(frame, device="mps")
 
     # Extract the relevant detection attributes from the results and store in Detections object
     detections = Detections(
@@ -331,6 +379,31 @@ def process_frame(
     )
     detections.filter(mask=mask, inplace=True)
 
+    # Get the area of each detection
+    if GET_AREA:
+        get_bbox_area(detections, frame)
+
+    # Generate labels for each detection to display the tracker ID, class name, and confidence
+    labels = [
+        f"#{tracker_id} {CLASS_NAMES_DICT[class_id]} {confidence:0.2f}"
+        for _, confidence, class_id, tracker_id in detections
+    ]
+
+    # Annotate the frame with the detection boxes and associated labels
+    frame = box_annotator.annotate(frame=frame, detections=detections, labels=labels)
+    # Update each line counter with the new detections
+    for line_counter in line_counters:
+        line_counter.update(detections=detections)
+        # Annotate the frame with any additional lines
+        line_annotator.annotate(frame=frame, line_counter=line_counter)
+
+    save_counts_to_csv(line_counters)
+
+    # Return the annotated frame
+    return frame
+
+
+def get_bbox_area(detections, frame):
     # For each detection, annotate the frame with the bounding box and the area
     for i in range(len(detections.xyxy)):
         x1, y1, x2, y2 = map(int, detections.xyxy[i])
@@ -358,25 +431,6 @@ def process_frame(
         cv2.rectangle(
             frame, (x1 + padding, y1 + padding), (x2 - padding, y2 - padding), color, 4
         )
-
-    # Generate labels for each detection to display the tracker ID, class name, and confidence
-    labels = [
-        f"#{tracker_id} {CLASS_NAMES_DICT[class_id]} {confidence:0.2f}"
-        for _, confidence, class_id, tracker_id in detections
-    ]
-
-    # Annotate the frame with the detection boxes and associated labels
-    frame = box_annotator.annotate(frame=frame, detections=detections, labels=labels)
-    # Update each line counter with the new detections
-    for line_counter in line_counters:
-        line_counter.update(detections=detections)
-        # Annotate the frame with any additional lines
-        line_annotator.annotate(frame=frame, line_counter=line_counter)
-
-    save_counts_to_csv(line_counters)
-
-    # Return the annotated frame
-    return frame
 
 
 def get_next_video_path(base_path=HOME, video_name="output.mp4", force_new_run=False):
@@ -440,82 +494,6 @@ def webcam_generator(cap):
         if not ret:
             break
         yield frame
-
-
-def plot(filename):
-    """
-    Plot the in count and out count for each frame from the CSV file.
-
-    Parameters:
-    - filename (str): The path to the CSV file containing the in and out counts for each frame.
-
-    Notes:
-    - The CSV file should have the following format:
-        ID,In Count,Out Count
-        1,"{class_id: count, ...}","{class_id: count, ...}"
-        2,"{class_id: count, ...}","{class_id: count, ...}"
-        ...
-    """
-    # Dictionaries to store the data for each class ID
-    ids = []
-    in_counts = {}  # {class_id: [counts for each frame]}
-    out_counts = {}  # {class_id: [counts for each frame]}
-
-    # Read data from the CSV file
-    with open(filename, "r", newline="") as f:
-        reader = csv.reader(f)
-        next(reader)  # Skip the header row
-        for row in reader:
-            ids.append(int(row[0]))
-            in_count_dict = ast.literal_eval(row[1])
-            out_count_dict = ast.literal_eval(row[2])
-
-            for class_id, count in in_count_dict.items():
-                if class_id not in in_counts:
-                    in_counts[class_id] = []
-                in_counts[class_id].append(count)
-
-            for class_id, count in out_count_dict.items():
-                if class_id not in out_counts:
-                    out_counts[class_id] = []
-                out_counts[class_id].append(count)
-
-    # Plotting the data
-    plt.figure(figsize=(10, 6))
-
-    for class_id, counts in in_counts.items():
-        plt.plot(ids, counts, label=f"In Count (Class {class_id})", marker="o")
-
-    for class_id, counts in out_counts.items():
-        plt.plot(
-            ids,
-            counts,
-            label=f"Out Count (Class {class_id})",
-            marker="o",
-            linestyle="--",
-        )
-
-    plt.title("In Count vs. Out Count")
-    plt.xlabel("ID")
-    plt.ylabel("Count")
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
-
-    # Save the plot as an image in the same directory as the CSV file
-    image_path = filename.replace(".csv", ".png")
-    plt.savefig(image_path)
-
-
-def plot_multiple(filenames):
-    """
-    Plot the in count and out count for each frame from multiple CSV files.
-
-    Parameters:
-    - filenames (list): A list of paths to the CSV files containing the in and out counts for each frame.
-    """
-    for filename in filenames:
-        plot(filename)
 
 
 def select_lines_from_video(video_path, n):
@@ -600,8 +578,12 @@ def main():
     """
     The main function that runs the model and tracking on a video or webcam.
     """
-    n = int(input("Enter the number of lines you want to select: "))
-    lines = select_lines_from_video(VIDEO_PATH, n)
+    if not GRID_LINES:
+        n = int(input("Enter the number of lines you want to select: "))
+        lines = select_lines_from_video(VIDEO_PATH, n)
+    else:
+        n = GRID_LINES_n + GRID_LINES_m
+        lines = grid_lines(GRID_LINES_n, GRID_LINES_m, VIDEO_PATH)
 
     # Initialize required components for processing the video
     (
@@ -660,7 +642,7 @@ def main():
         get_next_video_path(video_name=f"line_{i+1}_{TARGET_CSV_NAME}")
         for i in range(n)
     ]  # Adjust N as needed
-    plot_multiple(filenames)
+    plot_multiple(filenames, INTERVAL)
 
     # Destroy all OpenCV windows
     cv2.destroyAllWindows()

@@ -9,7 +9,7 @@ SRC_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT_DIR = os.path.join(SRC_DIR, os.pardir)
 
 # Video path:
-VIDEO_PATH = os.path.join(PROJECT_ROOT_DIR, "data", "highway.mp4")
+VIDEO_PATH = os.path.join(PROJECT_ROOT_DIR, "demo", "demo_video.mp4")
 
 # Benchmarking test set path:
 TEST_SET_PATH = os.path.join(PROJECT_ROOT_DIR, "data", "benchmark", "Bike", "img")
@@ -29,8 +29,19 @@ MODEL = os.path.join(PROJECT_ROOT_DIR, "models", "yolov8n.pt")
 USE_WEBCAM = False
 WEBCAM_ID = 0
 
+# Get area:
+GET_AREA = False
+
+# Grid lines:
+GRID_LINES = False
+GRID_LINES_n = 4
+GRID_LINES_m = 4
+
+# Plotting:
+INTERVAL = 15
+
 # Classes to track:
-CLASS_ID = [2]
+CLASS_ID = [2, 7, 5]
 """
 0: 'person',
 1: 'bicycle',
