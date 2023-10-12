@@ -12,9 +12,6 @@ HOME = os.getcwd()
 
 import cv2
 import csv
-import ast
-import supervision
-import matplotlib.pyplot as plt
 from supervision.draw.color import ColorPalette
 from supervision.geometry.dataclasses import Point
 from supervision.video.dataclasses import VideoInfo
@@ -642,7 +639,7 @@ def main():
         get_next_video_path(video_name=f"line_{i+1}_{TARGET_CSV_NAME}")
         for i in range(n)
     ]  # Adjust N as needed
-    plot_multiple(filenames, INTERVAL)
+    plot_multiple(filenames, INTERVAL, CLASS_EMOJI_MAPS)
 
     # Destroy all OpenCV windows
     cv2.destroyAllWindows()

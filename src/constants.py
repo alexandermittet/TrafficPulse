@@ -124,6 +124,13 @@ CLASS_ID = [2, 7, 5]
 78: 'hair drier',
 79: 'toothbrush'
 """
+# Mapping of class IDs to emojis
+CLASS_EMOJI_MAPS = {
+    0: "People",  # Person
+    1: "Cycles",  # Bicycle
+    2: "Cars",  # Car
+    7: "Trucks",  # Truck
+}
 
 compact_datetime = datetime.now().strftime("%m-%d_%H:%M:%S")
 TARGET_VIDEO_NAME = f"YOLOv8_({compact_datetime}).mp4"
