@@ -3,7 +3,10 @@
 ## This project is about automatic traffic data collection with Machine Learning.
 
 ### Demo
-- Download all requirements by doing: pip install -r requirements.txt
+- Download all requirements with pip or conda environment:
+    - pip install -r requirements.txt
+    - conda create --name AoM python=3.10 --file requirements.txt
+
 - Run demo in root folder with: python3 demo.py
 - You should then select two points by clicking on the screen which will act as the line counter
 - If everything has been installed properly then it will run the tracker on a 30s video
