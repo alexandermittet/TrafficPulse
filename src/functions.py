@@ -276,7 +276,6 @@ def initialize_components(USE_WEBCAM, VIDEO_PATH, MODEL, BYTETrackerArgs, lines)
     line_counters = [
         LineCounter(start=Point(*line[0]), end=Point(*line[1])) for line in lines
     ]
-
     box_annotator = BoxAnnotator(
         color=ColorPalette(),
         thickness=2,
