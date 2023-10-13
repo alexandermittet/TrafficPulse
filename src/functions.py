@@ -25,7 +25,7 @@ from onemetric.cv.utils.iou import box_iou_batch
 from dataclasses import dataclass
 from typing import List
 from tqdm import tqdm
-from plots import plot_multiple
+from plots import *
 
 
 # Using a dataclass to represent arguments for BYTETracker
@@ -606,6 +606,7 @@ def main():
         with VideoSink(
             get_next_video_path(video_name="original_" + TARGET_VIDEO_NAME), info
         ) as original_sink:
+            frame_counter = 0
             # Process each frame from the generator (typically frames from a video or webcam feed)
             for frame in tqdm(generator, total=info.total_frames):
                 # Save the original frame to the original video
@@ -622,6 +623,17 @@ def main():
                 )
                 # Write the processed frame to the output video
                 sink.write_frame(frame)
+                frame_counter += 1
+                if not GRID_LINES and n == 1:
+                    if (
+                        frame_counter % INTERVAL == 0
+                    ):  # Check if it's time to update the plot
+                        plot_interval(
+                            get_next_video_path(video_name=f"line_1_{TARGET_CSV_NAME}"),
+                            INTERVAL,
+                            CLASS_EMOJI_MAPS,
+                            LIVE,
+                        )
 
                 # Display the processed frame in a window
                 cv2.imshow("Processed Frame", frame)

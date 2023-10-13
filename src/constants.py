@@ -38,6 +38,7 @@ GRID_LINES_n = 4
 GRID_LINES_m = 4
 
 # Plotting:
+LIVE = True
 INTERVAL = 15
 
 # Classes to track:
@@ -129,6 +130,8 @@ CLASS_EMOJI_MAPS = {
     0: "People",  # Person
     1: "Cycles",  # Bicycle
     2: "Cars",  # Car
+    3: "Motorcycle",  # Motorcycle
+    5: "Bus",  # Bus
     7: "Trucks",  # Truck
 }
 

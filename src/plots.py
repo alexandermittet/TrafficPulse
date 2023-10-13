@@ -19,7 +19,7 @@ def plot_multiple(filenames, interval, class_emoji_mapping):
     """
     for filename in filenames:
         plot(filename)
-        plot_interval(filename, interval, class_emoji_mapping)
+        plot_interval(filename, interval, class_emoji_mapping, live=False)
 
 
 def plot(filename):
@@ -87,7 +87,11 @@ def plot(filename):
     plt.savefig(image_path)
 
 
-def plot_interval(filename, interval, class_emoji_mapping):
+global_fig, global_ax = None, None
+
+
+def plot_interval(filename, interval, class_emoji_mapping, live=False):
+    global global_fig, global_ax
     ids = []
     in_counts = {}
     out_counts = {}
@@ -124,20 +128,22 @@ def plot_interval(filename, interval, class_emoji_mapping):
         return grouped_counts
 
     grouped_in_counts = group_counts_from_cumulative(in_counts, interval)
-    grouped_out_counts = group_counts_from_cumulative(
-        out_counts, interval
-    )  # No longer inverting the values
+    grouped_out_counts = group_counts_from_cumulative(out_counts, interval)
 
     bar_width = 0.35
     index = np.arange(len(grouped_in_counts[next(iter(grouped_in_counts))]))
 
-    plt.figure(figsize=(10, 6))
+    if not global_fig or not plt.fignum_exists(global_fig.number):
+        plt.ion()
+        global_fig, global_ax = plt.subplots(figsize=(10, 6))
+    else:
+        global_ax.clear()
 
     max_in = 0
     max_out = 0
 
     for idx, (class_id, counts) in enumerate(grouped_in_counts.items()):
-        plt.bar(
+        global_ax.bar(
             index + idx * bar_width,
             counts,
             bar_width,
@@ -146,7 +152,7 @@ def plot_interval(filename, interval, class_emoji_mapping):
         max_in = max(max_in, max(counts))
 
     for idx, (class_id, counts) in enumerate(grouped_out_counts.items()):
-        plt.bar(
+        global_ax.bar(
             index + idx * bar_width,
             [-count for count in counts],  # Just invert here while plotting
             bar_width,
@@ -157,17 +163,15 @@ def plot_interval(filename, interval, class_emoji_mapping):
     # Adjusting y-ticks to show positive out_counts below x-axis
     max_y = max(max_in, max_out)
     step = max(1, int(max_y / 5))
-    plt.yticks(
-        list(range(-max_y, max_y + 1, step)),
-        [str(abs(y)) for y in range(-max_y, max_y + 1, step)],
-    )
+    global_ax.set_yticks(list(range(-max_y, max_y + 1, step)))
+    global_ax.set_yticklabels([str(abs(y)) for y in range(-max_y, max_y + 1, step)])
 
     # Annotate bars with emojis and counts
     for idx, (class_id, emoji) in enumerate(class_emoji_mapping.items()):
         total_in = in_counts.get(class_id, [0])[-1]  # get the last value
         total_out = out_counts.get(class_id, [0])[-1]  # get the last value
         total_count_for_class = total_in + total_out
-        plt.annotate(
+        global_ax.annotate(
             f"{emoji} : {total_count_for_class}",
             xy=(1.02, idx * 0.1),
             xycoords="axes fraction",
@@ -175,14 +179,18 @@ def plot_interval(filename, interval, class_emoji_mapping):
             va="center",
         )
 
-    plt.axhline(0, color="black")
-    plt.title("In Count vs. Out Count over intervals")
-    plt.xlabel(f"Interval (Each interval is {interval} frames)")
-    plt.ylabel("Count")
-    plt.legend(loc="upper left", bbox_to_anchor=(1, 1))
-    plt.grid(True, which="both", linestyle="--", linewidth=0.5)
-    plt.tight_layout()
+    global_ax.axhline(0, color="black")
+    global_ax.set_title("In Count (top) vs. Out Count (bottom) over intervals")
+    global_ax.set_xlabel(f"Interval (Each interval is {interval} frames)")
+    global_ax.set_ylabel("Count")
+    global_ax.legend(loc="upper left", bbox_to_anchor=(1, 1))
+    global_ax.grid(True, which="both", linestyle="--", linewidth=0.5)
+    global_fig.tight_layout()
 
-    # Save the plot as an image in the same directory as the CSV file
-    image_path = filename.replace(".csv", "_interval.png")
-    plt.savefig(image_path, bbox_inches="tight")
+    if live:
+        plt.draw()
+        plt.pause(0.01)  # Optional short pause to ensure plot gets updated
+    else:
+        # Save the plot as an image in the same directory as the CSV file
+        image_path = filename.replace(".csv", "_interval.png")
+        global_fig.savefig(image_path, bbox_inches="tight")
