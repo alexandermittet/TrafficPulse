@@ -88,7 +88,7 @@ def process_frame_BM(
         frame (np.ndarray): The processed frame.
     """
     # Get the detection results from the model for the given frame
-    results = model(frame)
+    results = model.predict(frame, device="mps")
 
     # Extract the relevant detection attributes from the results and store in Detections object
     detections = Detections(
