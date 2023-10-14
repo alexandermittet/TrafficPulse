@@ -12,7 +12,7 @@ PROJECT_ROOT_DIR = os.path.join(SRC_DIR, os.pardir)
 VIDEO_PATH = os.path.join(PROJECT_ROOT_DIR, "demo", "demo_video.mp4")
 
 # Benchmarking test set path:
-TEST_SET_PATH = os.path.join(PROJECT_ROOT_DIR, "data", "benchmark", "Bike", "img")
+TEST_SET_PATH = os.path.join(PROJECT_ROOT_DIR, "data", "MOT16-13", "img1")
 
 # Create the absolute path to the model
 """
@@ -42,7 +42,7 @@ LIVE = True
 INTERVAL = 15
 
 # Classes to track:
-CLASS_ID = [2, 7, 5]
+CLASS_ID = [0, 2]
 """
 0: 'person',
 1: 'bicycle',
