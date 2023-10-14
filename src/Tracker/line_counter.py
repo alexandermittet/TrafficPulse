@@ -1,5 +1,7 @@
 import cv2
 import numpy as np
+from typing import List
+from typing import Dict
 
 from supervision.draw.color import Color
 from supervision.geometry.dataclasses import Point, Rect, Vector
@@ -7,7 +9,7 @@ from supervision.tools.detections import Detections
 
 
 class LineCounter:
-    def __init__(self, start: Point, end: Point):
+    def __init__(self, start: Point, end: Point, class_ids: List[int]):
         """
         Initialize a LineCounter object.
 
@@ -16,8 +18,9 @@ class LineCounter:
         """
         self.vector = Vector(start=start, end=end)
         self.tracker_state: Dict[str, bool] = {}
-        self.in_count: Dict[int, int] = {}  # Keep separate in counts for each class
-        self.out_count: Dict[int, int] = {}  # Keep separate out counts for each class
+        # Initialize in_count and out_count with zeros for all given class IDs
+        self.in_count = {class_id: 0 for class_id in class_ids}
+        self.out_count = {class_id: 0 for class_id in class_ids}
 
     def update(self, detections: Detections):
         """

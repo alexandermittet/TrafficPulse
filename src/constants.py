@@ -42,7 +42,7 @@ LIVE = True
 INTERVAL = 15
 
 # Classes to track:
-CLASS_ID = [0, 2]
+CLASS_ID = [2, 3, 5, 7]
 """
 0: 'person',
 1: 'bicycle',
