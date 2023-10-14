@@ -7,6 +7,7 @@ All functions for plotting the data from the CSV file.
 import csv
 import ast
 import matplotlib.pyplot as plt
+import pandas as pd
 import numpy as np
 
 
@@ -20,6 +21,7 @@ def plot_multiple(filenames, interval, class_emoji_mapping):
     for filename in filenames:
         plot(filename)
         plot_interval(filename, interval, class_emoji_mapping, live=False)
+        plot_vehicle_distribution(filename, class_emoji_mapping)
 
 
 def plot(filename):
@@ -194,3 +196,49 @@ def plot_interval(filename, interval, class_emoji_mapping, live=False):
         # Save the plot as an image in the same directory as the CSV file
         image_path = filename.replace(".csv", "_interval.png")
         global_fig.savefig(image_path, bbox_inches="tight")
+
+
+def plot_vehicle_distribution(file_path, CLASS_EMOJI_MAPS):
+    # Load the CSV file
+    data = pd.read_csv(file_path)
+
+    # Convert the string representation of dictionaries into actual dictionaries
+    data["In Count"] = data["In Count"].apply(ast.literal_eval)
+    data["Out Count"] = data["Out Count"].apply(ast.literal_eval)
+
+    # Extract the counts for the last frame
+    last_frame_in_counts = data.iloc[-1]["In Count"]
+    last_frame_out_counts = data.iloc[-1]["Out Count"]
+
+    # Sum the "In" and "Out" counts for each vehicle class
+    total_counts = {
+        k: last_frame_in_counts.get(k, 0) + last_frame_out_counts.get(k, 0)
+        for k in set(last_frame_in_counts) | set(last_frame_out_counts)
+    }
+
+    class_names = [CLASS_EMOJI_MAPS[k] for k in total_counts.keys()]
+    counts = list(total_counts.values())
+
+    # Remove classes with zero counts
+    filtered_class_names = [
+        class_name for class_name, count in zip(class_names, counts) if count > 0
+    ]
+    filtered_counts = [count for count in counts if count > 0]
+
+    # Plotting
+    plt.figure(figsize=(10, 7))
+    colors = plt.cm.Paired(range(len(filtered_class_names)))
+    explode = [0.05] * len(filtered_class_names)
+    plt.pie(
+        filtered_counts,
+        labels=filtered_class_names,
+        autopct="%1.1f%%",
+        startangle=140,
+        colors=colors,
+        explode=explode,
+    )
+    plt.title("Overall Vehicle Class Distribution")
+    plt.tight_layout()
+    # Save the plot as an image in the same directory as the CSV file
+    image_path = file_path.replace(".csv", "_distribution.png")
+    plt.savefig(image_path, bbox_inches="tight")
