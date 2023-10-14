@@ -210,35 +210,51 @@ def plot_vehicle_distribution(file_path, CLASS_EMOJI_MAPS):
     last_frame_in_counts = data.iloc[-1]["In Count"]
     last_frame_out_counts = data.iloc[-1]["Out Count"]
 
-    # Sum the "In" and "Out" counts for each vehicle class
-    total_counts = {
-        k: last_frame_in_counts.get(k, 0) + last_frame_out_counts.get(k, 0)
-        for k in set(last_frame_in_counts) | set(last_frame_out_counts)
-    }
+    # Function to process data for pie chart
+    def prepare_data_for_pie_chart(count_data):
+        class_names = [CLASS_EMOJI_MAPS[k] for k in count_data.keys()]
+        counts = list(count_data.values())
 
-    class_names = [CLASS_EMOJI_MAPS[k] for k in total_counts.keys()]
-    counts = list(total_counts.values())
+        # Remove classes with zero counts
+        filtered_class_names = [
+            class_name for class_name, count in zip(class_names, counts) if count > 0
+        ]
+        filtered_counts = [count for count in counts if count > 0]
 
-    # Remove classes with zero counts
-    filtered_class_names = [
-        class_name for class_name, count in zip(class_names, counts) if count > 0
-    ]
-    filtered_counts = [count for count in counts if count > 0]
+        return filtered_class_names, filtered_counts
+
+    in_class_names, in_counts = prepare_data_for_pie_chart(last_frame_in_counts)
+    out_class_names, out_counts = prepare_data_for_pie_chart(last_frame_out_counts)
 
     # Plotting
-    plt.figure(figsize=(10, 7))
-    colors = plt.cm.Paired(range(len(filtered_class_names)))
-    explode = [0.05] * len(filtered_class_names)
-    plt.pie(
-        filtered_counts,
-        labels=filtered_class_names,
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 7))
+
+    colors_in = plt.cm.Paired(range(len(in_class_names)))
+    explode = [0.05] * len(in_class_names)
+    ax1.pie(
+        in_counts,
+        labels=in_class_names,
         autopct="%1.1f%%",
         startangle=140,
-        colors=colors,
+        colors=colors_in,
         explode=explode,
     )
-    plt.title("Overall Vehicle Class Distribution")
+    ax1.set_title("In Vehicle Class Distribution")
+
+    colors_out = plt.cm.Paired(range(len(out_class_names)))
+    explode = [0.05] * len(out_class_names)
+    ax2.pie(
+        out_counts,
+        labels=out_class_names,
+        autopct="%1.1f%%",
+        startangle=140,
+        colors=colors_out,
+        explode=explode,
+    )
+    ax2.set_title("Out Vehicle Class Distribution")
+
     plt.tight_layout()
+
     # Save the plot as an image in the same directory as the CSV file
     image_path = file_path.replace(".csv", "_distribution.png")
     plt.savefig(image_path, bbox_inches="tight")
