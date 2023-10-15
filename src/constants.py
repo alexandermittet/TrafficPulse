@@ -9,7 +9,9 @@ SRC_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT_DIR = os.path.join(SRC_DIR, os.pardir)
 
 # Video path:
-VIDEO_PATH = os.path.join(PROJECT_ROOT_DIR, "data", "highway.mp4")
+VIDEO_PATH = os.path.join(
+    PROJECT_ROOT_DIR, "data", "local", "output_20231007114249.mp4"
+)
 
 # Benchmarking test set path:
 TEST_SET_PATH = os.path.join(PROJECT_ROOT_DIR, "data", "MOT16-13", "img1")
