@@ -98,6 +98,11 @@ def plot_interval(filename, interval, class_emoji_mapping, live=False):
     in_counts = {}
     out_counts = {}
 
+    if live:
+        plt.ion()
+    else:
+        plt.ioff()
+
     # Read data from the CSV file
     with open(filename, "r", newline="") as f:
         reader = csv.reader(f)
@@ -136,7 +141,6 @@ def plot_interval(filename, interval, class_emoji_mapping, live=False):
     index = np.arange(len(grouped_in_counts[next(iter(grouped_in_counts))]))
 
     if not global_fig or not plt.fignum_exists(global_fig.number):
-        plt.ion()
         global_fig, global_ax = plt.subplots(figsize=(10, 6))
     else:
         global_ax.clear()
@@ -196,6 +200,7 @@ def plot_interval(filename, interval, class_emoji_mapping, live=False):
         # Save the plot as an image in the same directory as the CSV file
         image_path = filename.replace(".csv", "_interval.png")
         global_fig.savefig(image_path, bbox_inches="tight")
+        plt.close(global_fig)
 
 
 def plot_vehicle_distribution(file_path, CLASS_EMOJI_MAPS):

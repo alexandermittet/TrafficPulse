@@ -625,7 +625,7 @@ def main():
                 # Write the processed frame to the output video
                 sink.write_frame(frame)
                 frame_counter += 1
-                if not GRID_LINES and n == 1:
+                if not GRID_LINES and n == 1 and LIVE:
                     if (
                         frame_counter % INTERVAL == 0
                     ):  # Check if it's time to update the plot
