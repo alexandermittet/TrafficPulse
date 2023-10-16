@@ -640,7 +640,7 @@ def main():
                         plot_interval(
                             get_next_video_path(video_name=f"line_1_{TARGET_CSV_NAME}"),
                             INTERVAL,
-                            CLASS_EMOJI_MAPS,
+                            CLASS_MAPS,
                             LIVE,
                         )
 
@@ -660,7 +660,7 @@ def main():
         get_next_video_path(video_name=f"line_{i+1}_{TARGET_CSV_NAME}")
         for i in range(n)
     ]  # Adjust N as needed
-    plot_multiple(filenames, INTERVAL, CLASS_EMOJI_MAPS)
+    plot_multiple(filenames, INTERVAL, CLASS_MAPS)
 
     # Destroy all OpenCV windows
     cv2.destroyAllWindows()

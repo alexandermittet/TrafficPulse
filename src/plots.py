@@ -203,7 +203,7 @@ def plot_interval(filename, interval, class_emoji_mapping, live=False):
         plt.close(global_fig)
 
 
-def plot_vehicle_distribution(file_path, CLASS_EMOJI_MAPS):
+def plot_vehicle_distribution(file_path, class_maps):
     # Load the CSV file
     data = pd.read_csv(file_path)
 
@@ -217,7 +217,7 @@ def plot_vehicle_distribution(file_path, CLASS_EMOJI_MAPS):
 
     # Function to process data for pie chart
     def prepare_data_for_pie_chart(count_data):
-        class_names = [CLASS_EMOJI_MAPS[k] for k in count_data.keys()]
+        class_names = [class_maps[k] for k in count_data.keys()]
         counts = list(count_data.values())
 
         # Remove classes with zero counts
