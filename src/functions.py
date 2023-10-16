@@ -12,6 +12,7 @@ HOME = os.getcwd()
 
 import cv2
 import csv
+
 from supervision.draw.color import ColorPalette
 from supervision.geometry.dataclasses import Point
 from supervision.video.dataclasses import VideoInfo
@@ -23,9 +24,11 @@ from ultralytics import YOLO
 from Tracker.byte_tracker import BYTETracker, STrack
 from onemetric.cv.utils.iou import box_iou_batch
 from dataclasses import dataclass
+from collections import deque
 from typing import List
 from tqdm import tqdm
 from plots import *
+from speed import *
 
 
 # Using a dataclass to represent arguments for BYTETracker
@@ -309,6 +312,7 @@ def process_frame(
     line_counters,
     box_annotator,
     line_annotator,
+    history_dict,
 ):
     """
     Process a given frame to detect and annotate objects based on the provided model and parameters.
@@ -396,6 +400,8 @@ def process_frame(
         line_annotator.annotate(frame=frame, line_counter=line_counter)
 
     save_counts_to_csv(line_counters)
+
+    frame, history_dict = update_and_draw(detections, frame, history_dict)
 
     # Return the annotated frame
     return frame
@@ -573,6 +579,7 @@ def save_counts_to_csv(line_counters):
 
 
 def main():
+    history_dict = {}
     """
     The main function that runs the model and tracking on a video or webcam.
     """
@@ -621,6 +628,7 @@ def main():
                     line_counter,
                     box_annotator,
                     line_annotator,
+                    history_dict,
                 )
                 # Write the processed frame to the output video
                 sink.write_frame(frame)

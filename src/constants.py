@@ -41,6 +41,8 @@ GRID_LINES_m = 4
 LIVE = False
 INTERVAL = 15
 
+HIST_LEN = 15
+
 # Classes to track:
 CLASS_ID = [2, 3, 5, 7]
 """
