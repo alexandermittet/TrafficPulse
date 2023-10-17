@@ -24,6 +24,13 @@ class STrack(BaseTrack):
         self.score = score
         self.tracklet_len = 0
 
+    def get_speed(self):
+        if self.mean is None:
+            return 0
+
+        vx, vy = self.mean[4], self.mean[5]
+        return np.sqrt(vx**2 + vy**2)
+
     def predict(self):
         mean_state = self.mean.copy()
         if self.state != TrackState.Tracked:

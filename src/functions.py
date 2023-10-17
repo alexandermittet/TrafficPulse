@@ -389,7 +389,7 @@ def process_frame(
 
     # Step 1: Calculate speed for each tracked object
     if GET_SPEED:
-        frame, history_dict = update_and_draw(detections, frame, history_dict, HIST_LEN)
+        """frame, history_dict = update_and_draw(detections, frame, history_dict, HIST_LEN)
         speeds_kmh = []
         print(history_dict)
 
@@ -402,6 +402,19 @@ def process_frame(
         # Step 2: Modify labels for annotation
         labels = [
             f"#{tracker_id} {CLASS_NAMES_DICT[class_id]} {confidence:0.2f} - {speed:0.2f} km/h"
+            for (_, confidence, class_id, tracker_id), speed in zip(
+                detections, speeds_kmh
+            )
+        ]"""
+
+        speeds_kmh = []
+
+        for track in tracks:
+            speed = track.get_speed()  # Assuming 'track' is an instance of STrack
+            speeds_kmh.append(speed)
+
+        labels = [
+            f"#{tracker_id} {CLASS_NAMES_DICT[class_id]} {confidence:0.2f} - {speed:0.2f} pixels/frame"
             for (_, confidence, class_id, tracker_id), speed in zip(
                 detections, speeds_kmh
             )
