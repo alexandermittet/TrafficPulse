@@ -12,6 +12,8 @@ HOME = os.getcwd()
 
 import cv2
 import csv
+import math
+import time
 
 from supervision.draw.color import ColorPalette
 from supervision.geometry.dataclasses import Point
@@ -385,11 +387,31 @@ def process_frame(
     if GET_AREA:
         get_bbox_area(detections, frame)
 
-    # Generate labels for each detection to display the tracker ID, class name, and confidence
-    labels = [
-        f"#{tracker_id} {CLASS_NAMES_DICT[class_id]} {confidence:0.2f}"
-        for _, confidence, class_id, tracker_id in detections
-    ]
+    # Step 1: Calculate speed for each tracked object
+    if GET_SPEED:
+        frame, history_dict = update_and_draw(detections, frame, history_dict, HIST_LEN)
+        speeds_kmh = []
+        print(history_dict)
+
+        for tracker_id in history_dict:
+            avg_speed = moving_average_speed_from_history(
+                history_dict[tracker_id], PPM, HIST_LEN - 5
+            )
+            speeds_kmh.append(avg_speed)
+
+        # Step 2: Modify labels for annotation
+        labels = [
+            f"#{tracker_id} {CLASS_NAMES_DICT[class_id]} {confidence:0.2f} - {speed:0.2f} km/h"
+            for (_, confidence, class_id, tracker_id), speed in zip(
+                detections, speeds_kmh
+            )
+        ]
+    else:
+        # Generate labels for each detection to display the tracker ID, class name, and confidence
+        labels = [
+            f"#{tracker_id} {CLASS_NAMES_DICT[class_id]} {confidence:0.2f}"
+            for _, confidence, class_id, tracker_id in detections
+        ]
 
     # Annotate the frame with the detection boxes and associated labels
     frame = box_annotator.annotate(frame=frame, detections=detections, labels=labels)
@@ -400,8 +422,6 @@ def process_frame(
         line_annotator.annotate(frame=frame, line_counter=line_counter)
 
     save_counts_to_csv(line_counters)
-
-    frame, history_dict = update_and_draw(detections, frame, history_dict)
 
     # Return the annotated frame
     return frame

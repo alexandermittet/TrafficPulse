@@ -15,14 +15,15 @@ GRID_LINES = (
     False  # If True, draw grid lines on the video (set n and m under Constants)
 )
 LIVE = False  # If True, show the interval plot live
-
+GET_SPEED = True  # If True, calculate the speed of each object
 # Constants:
 WEBCAM_ID = 0  # The ID of the webcam to use
 GRID_LINES_n = 4  # The number of vertical grid lines
 GRID_LINES_m = 4  # The number of horizontal grid lines
 INTERVAL = 15  # The interval to plot the in and out counts
 HIST_LEN = 15  # The number of frames to plot in the histogram
-CLASS_ID = [2, 3, 5, 7]  # The class IDs to track
+PPM = 15  # The pixels per meter (calibration)
+CLASS_ID = [1, 2, 3, 5, 7]  # The class IDs to track
 """ Class IDs:
 0: 'person',
 1: 'bicycle',
@@ -110,7 +111,7 @@ CLASS_ID = [2, 3, 5, 7]  # The class IDs to track
 SRC_DIR = os.path.dirname(os.path.abspath(__file__))  # The directory of this file
 PROJECT_ROOT_DIR = os.path.join(SRC_DIR, os.pardir)  # The root directory of the project
 VIDEO_PATH = os.path.join(
-    PROJECT_ROOT_DIR, "data", "highway2.mp4"
+    PROJECT_ROOT_DIR, "demo", "demo_video.mp4"
 )  # The path to the video file
 TEST_SET_PATH = os.path.join(
     PROJECT_ROOT_DIR, "data", "MOT16-13", "img1"
