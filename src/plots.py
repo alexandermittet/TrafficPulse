@@ -22,6 +22,7 @@ def plot_multiple(filenames, interval, class_emoji_mapping):
         plot(filename)
         plot_interval(filename, interval, class_emoji_mapping, live=False)
         plot_vehicle_distribution(filename, class_emoji_mapping)
+        plot_net_traffic_movement(filename, class_emoji_mapping)
 
 
 def plot(filename):
@@ -92,7 +93,7 @@ def plot(filename):
 global_fig, global_ax = None, None
 
 
-def plot_interval(filename, interval, class_emoji_mapping, live=False):
+def plot_interval(file_path, interval, class_emoji_mapping, live=False):
     global global_fig, global_ax
     ids = []
     in_counts = {}
@@ -104,7 +105,7 @@ def plot_interval(filename, interval, class_emoji_mapping, live=False):
         plt.ioff()
 
     # Read data from the CSV file
-    with open(filename, "r", newline="") as f:
+    with open(file_path, "r", newline="") as f:
         reader = csv.reader(f)
         next(reader)  # Skip the header row
         for row in reader:
@@ -198,7 +199,7 @@ def plot_interval(filename, interval, class_emoji_mapping, live=False):
         plt.pause(0.01)  # Optional short pause to ensure plot gets updated
     else:
         # Save the plot as an image in the same directory as the CSV file
-        image_path = filename.replace(".csv", "_interval.png")
+        image_path = file_path.replace(".csv", "_interval.png")
         global_fig.savefig(image_path, bbox_inches="tight")
         plt.close(global_fig)
 
@@ -262,4 +263,52 @@ def plot_vehicle_distribution(file_path, class_maps):
 
     # Save the plot as an image in the same directory as the CSV file
     image_path = file_path.replace(".csv", "_distribution.png")
+    plt.savefig(image_path, bbox_inches="tight")
+
+
+def plot_net_traffic_movement(file_path, class_emoji_mapping):
+    """
+    Visualizes the net traffic movement over time for detected vehicle classes from a given CSV file.
+
+    Parameters:
+        filepath (str): Path to the CSV file containing traffic count data.
+    """
+
+    # Load CSV
+    df = pd.read_csv(file_path)
+
+    # Convert dictionary-like strings to dictionaries
+    df["In Count"] = df["In Count"].apply(ast.literal_eval)
+    df["Out Count"] = df["Out Count"].apply(ast.literal_eval)
+
+    # Compute net movement
+    for vehicle_class in class_emoji_mapping.keys():
+        df[class_emoji_mapping[vehicle_class]] = df.apply(
+            lambda row: row["In Count"].get(vehicle_class, 0)
+            - row["Out Count"].get(vehicle_class, 0),
+            axis=1,
+        )
+
+    # Determine detected vehicle classes
+    detected_classes = set()
+    for _, row in df.iterrows():
+        detected_classes.update(row["In Count"].keys())
+        detected_classes.update(row["Out Count"].keys())
+    detected_class_names = [
+        class_emoji_mapping[cls]
+        for cls in detected_classes
+        if cls in class_emoji_mapping
+    ]
+
+    # Plotting
+    plt.figure(figsize=(15, 10))
+    for vehicle_class in detected_class_names:
+        plt.plot(df["ID"], df[vehicle_class], label=vehicle_class)
+    plt.title("Net Traffic Movement Over Time")
+    plt.xlabel("Time Interval (ID)")
+    plt.ylabel("Net Movement")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    image_path = file_path.replace(".csv", "_netmovement.png")
     plt.savefig(image_path, bbox_inches="tight")

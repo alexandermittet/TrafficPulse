@@ -389,10 +389,10 @@ def process_frame(
 
     # Step 1: Calculate speed for each tracked object
     if GET_SPEED:
-        """frame, history_dict = update_and_draw(detections, frame, history_dict, HIST_LEN)
+        frame, history_dict = update_and_draw(detections, frame, history_dict, HIST_LEN)
         speeds_kmh = []
-        print(history_dict)
 
+        print(history_dict)
         for tracker_id in history_dict:
             avg_speed = moving_average_speed_from_history(
                 history_dict[tracker_id], PPM, HIST_LEN - 5
@@ -402,19 +402,6 @@ def process_frame(
         # Step 2: Modify labels for annotation
         labels = [
             f"#{tracker_id} {CLASS_NAMES_DICT[class_id]} {confidence:0.2f} - {speed:0.2f} km/h"
-            for (_, confidence, class_id, tracker_id), speed in zip(
-                detections, speeds_kmh
-            )
-        ]"""
-
-        speeds_kmh = []
-
-        for track in tracks:
-            speed = track.get_speed()  # Assuming 'track' is an instance of STrack
-            speeds_kmh.append(speed)
-
-        labels = [
-            f"#{tracker_id} {CLASS_NAMES_DICT[class_id]} {confidence:0.2f} - {speed:0.2f} pixels/frame"
             for (_, confidence, class_id, tracker_id), speed in zip(
                 detections, speeds_kmh
             )
@@ -635,6 +622,8 @@ def main():
         line_annotator,
         CLASS_NAMES_DICT,
     ) = initialize_components(USE_WEBCAM, VIDEO_PATH, MODEL, BYTETrackerArgs, lines)
+
+    speeds_kmh = []
 
     # VideoSink helps in writing the processed frames to a new video
     with VideoSink(
