@@ -388,6 +388,7 @@ def process_frame(
         get_bbox_area(detections, frame)
 
     # Step 1: Calculate speed for each tracked object
+    # Step 1: Calculate speed for each tracked object
     if GET_SPEED:
         frame, history_dict = update_and_draw(detections, frame, history_dict, HIST_LEN)
         speeds_kmh = {}
@@ -397,11 +398,21 @@ def process_frame(
             )
             speeds_kmh[tracker_id] = avg_speed
 
+        # Remove tracker IDs from speeds_kmh if not in history_dict
+        for tracker_id in list(speeds_kmh.keys()):
+            if tracker_id not in history_dict:
+                del speeds_kmh[tracker_id]
+
         # Step 2: Modify labels for annotation
-        labels = [
-            f"#{detection[3]} {CLASS_NAMES_DICT[detection[2]]} {detection[1]:0.2f} - {speeds_kmh[detection[3]]:0.2f} km/h"
-            for detection in detections
-        ]
+        labels = []
+        for detection in detections:
+            # Only include the speed if the tracker ID is in the speeds_kmh dictionary
+            if detection[3] in speeds_kmh:
+                label = f"#{detection[3]} {CLASS_NAMES_DICT[detection[2]]} {detection[1]:0.2f} - {speeds_kmh[detection[3]]:0.2f} km/h"
+                labels.append(label)
+            else:
+                label = f"#{detection[3]} {CLASS_NAMES_DICT[detection[2]]} {detection[1]:0.2f}"
+                labels.append(label)
 
     else:
         # Generate labels for each detection to display the tracker ID, class name, and confidence
