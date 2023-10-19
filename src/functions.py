@@ -397,8 +397,6 @@ def process_frame(
             )
             speeds_kmh[tracker_id] = avg_speed
 
-        print(speeds_kmh)
-
         # Step 2: Modify labels for annotation
         labels = [
             f"#{detection[3]} {CLASS_NAMES_DICT[detection[2]]} {detection[1]:0.2f} - {speeds_kmh[detection[3]]:0.2f} km/h"

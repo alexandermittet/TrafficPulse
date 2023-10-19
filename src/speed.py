@@ -63,9 +63,6 @@ def convert_history_to_dict(track_history):
     return history_dict
 
 
-GRACE_PERIOD = 5
-
-
 def update_and_draw(
     detections, frame, history_dict, history_len, missing_frame_threshold=5
 ):
