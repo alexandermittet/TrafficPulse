@@ -9,7 +9,7 @@ from datetime import datetime
 compact_datetime = datetime.now().strftime("%m-%d_%H:%M:%S")
 
 # Toggles:
-USE_WEBCAM = True  # If False, use the video file specified in VIDEO_PATH else use the webcam (set WEBCAM_ID under Constants)
+USE_WEBCAM = False  # If False, use the video file specified in VIDEO_PATH else use the webcam (set WEBCAM_ID under Constants)
 GET_AREA = False  # If True, get the area of the bounding box of each object
 GRID_LINES = (
     False  # If True, draw grid lines on the video (set n and m under Constants)
@@ -22,8 +22,8 @@ GRID_LINES_n = 4  # The number of vertical grid lines
 GRID_LINES_m = 4  # The number of horizontal grid lines
 INTERVAL = 15  # The interval to plot the in and out counts
 HIST_LEN = 15  # The number of frames to plot in the histogram
-PPM = 15  # The pixels per meter (calibration)
-CLASS_ID = [0, 2, 3, 7]  # The class IDs to track
+PPM = 20  # The pixels per meter (calibration)
+CLASS_ID = [2]  # The class IDs to track
 """ Class IDs:
 0: 'person',
 1: 'bicycle',
@@ -111,7 +111,7 @@ CLASS_ID = [0, 2, 3, 7]  # The class IDs to track
 SRC_DIR = os.path.dirname(os.path.abspath(__file__))  # The directory of this file
 PROJECT_ROOT_DIR = os.path.join(SRC_DIR, os.pardir)  # The root directory of the project
 VIDEO_PATH = os.path.join(
-    PROJECT_ROOT_DIR, "data", "highway3.mp4"
+    PROJECT_ROOT_DIR, "data", "highway2.mp4"
 )  # The path to the video file
 TEST_SET_PATH = os.path.join(
     PROJECT_ROOT_DIR, "data", "MOT16-13", "img1"
@@ -122,7 +122,7 @@ TARGET_BBOX_NAME = (
     f"YOLOv8_BB_({compact_datetime}).txt"  # The name of the output bounding box file
 )
 MODEL = os.path.join(
-    PROJECT_ROOT_DIR, "models", "yolov8n.pt"
+    PROJECT_ROOT_DIR, "models", "yolov8x.pt"
 )  # The path to the model / model name
 """ # Models:
 yolov8n.pt

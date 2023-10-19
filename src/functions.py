@@ -36,7 +36,7 @@ from speed import *
 # Using a dataclass to represent arguments for BYTETracker
 @dataclass(frozen=True)
 class BYTETrackerArgs:
-    track_thresh: float = 0.25  # Threshold for tracking
+    track_thresh: float = 0.35  # Threshold for tracking
     track_buffer: int = 30  # Buffer for tracking
     match_thresh: float = 0.8  # Matching threshold
     aspect_ratio_thresh: float = 3.0  # Aspect ratio threshold
@@ -390,22 +390,21 @@ def process_frame(
     # Step 1: Calculate speed for each tracked object
     if GET_SPEED:
         frame, history_dict = update_and_draw(detections, frame, history_dict, HIST_LEN)
-        speeds_kmh = []
-
-        print(history_dict)
+        speeds_kmh = {}
         for tracker_id in history_dict:
             avg_speed = moving_average_speed_from_history(
                 history_dict[tracker_id], PPM, HIST_LEN - 5
             )
-            speeds_kmh.append(avg_speed)
+            speeds_kmh[tracker_id] = avg_speed
+
+        print(speeds_kmh)
 
         # Step 2: Modify labels for annotation
         labels = [
-            f"#{tracker_id} {CLASS_NAMES_DICT[class_id]} {confidence:0.2f} - {speed:0.2f} km/h"
-            for (_, confidence, class_id, tracker_id), speed in zip(
-                detections, speeds_kmh
-            )
+            f"#{detection[3]} {CLASS_NAMES_DICT[detection[2]]} {detection[1]:0.2f} - {speeds_kmh[detection[3]]:0.2f} km/h"
+            for detection in detections
         ]
+
     else:
         # Generate labels for each detection to display the tracker ID, class name, and confidence
         labels = [

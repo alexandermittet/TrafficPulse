@@ -63,20 +63,28 @@ def convert_history_to_dict(track_history):
     return history_dict
 
 
-def update_and_draw(detections, frame, history_dict, history_len):
+GRACE_PERIOD = 5
+
+
+def update_and_draw(
+    detections, frame, history_dict, history_len, missing_frame_threshold=5
+):
     """
-    Updates the history of detections and draws lines on a frame.
+    Calculates the centroid of a bounding box given its top-left coordinates and dimensions.
 
     Parameters:
-    - detections: The detected objects containing xyxy and tracker_id.
-    - frame: The frame where lines will be drawn.
-    - history_dict: A dictionary to store the history of centroids.
-    - history_len: The length of the history to keep.
+    - tl_x: x-coordinate of the top-left corner of the bounding box.
+    - tl_y: y-coordinate of the top-left corner of the bounding box.
+    - w: width of the bounding box.
+    - h: height of the bounding box.
+    - missing_frame_threshold: Number of consecutive frames an object can be missing before being removed from the history. Default is 5.
 
     Returns:
-    - frame: The frame with lines drawn on it.
-    - history_dict: Updated history dictionary.
+    - (mid_x, mid_y): tuple representing the centroid of the bounding box.
     """
+
+    # This dictionary will keep track of how many consecutive frames an ID has been missing
+    missing_frames_count = {}
 
     # Update the history
     for detection, tracker_id in zip(detections.xyxy, detections.tracker_id):
@@ -87,11 +95,14 @@ def update_and_draw(detections, frame, history_dict, history_len):
         )  # Calculate the centroid of the bounding box
         if tracker_id not in history_dict:
             history_dict[tracker_id] = [(centroid, time.time())]
+            missing_frames_count[tracker_id] = 0  # initialize the missing frame count
         else:
             history_dict[tracker_id].append((centroid, time.time()))
 
             if len(history_dict[tracker_id]) > history_len:
                 history_dict[tracker_id].pop(0)
+            missing_frames_count[tracker_id] = 0  # reset the missing frame count
+
     # Get the set of tracker IDs currently in frame
     current_tracker_ids = set(detections.tracker_id)
 
@@ -101,9 +112,17 @@ def update_and_draw(detections, frame, history_dict, history_len):
     # Identify which tracker IDs are missing from the current frame
     missing_ids = history_tracker_ids - current_tracker_ids
 
-    # Remove these IDs from the history_dict
+    # Update or initialize their missing frame counters
     for tracker_id in missing_ids:
-        del history_dict[tracker_id]
+        if tracker_id not in missing_frames_count:
+            missing_frames_count[tracker_id] = 1
+        else:
+            missing_frames_count[tracker_id] += 1
+
+        # If a tracker ID has been missing for more than the threshold, remove it from the history
+        if missing_frames_count[tracker_id] > missing_frame_threshold:
+            del history_dict[tracker_id]
+            del missing_frames_count[tracker_id]
 
     # Draw the lines
     for tracker_id in detections.tracker_id:
