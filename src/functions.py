@@ -305,6 +305,50 @@ def initialize_components(USE_WEBCAM, VIDEO_PATH, MODEL, BYTETrackerArgs, lines)
     )
 
 
+def save_results_to_csv(frame_counter, filename, detections, speeds_kmh, line_counters):
+    frame_id = frame_counter
+    data_dict = {}
+
+    for detection in detections:
+        bbox = tuple(detection[0])  # assuming the format is (x1, y1, x2, y2)
+        class_id = detection[2]
+        tracker_id = detection[3]
+        speed = speeds_kmh.get(tracker_id, None)
+
+        # Check if the detection with this tracker_id has crossed the line
+        has_crossed_line = any(
+            line_counter.has_crossed(tracker_id) for line_counter in line_counters
+        )
+
+        # If the object has crossed the line, then log it
+        if has_crossed_line:
+            data_dict[class_id] = (bbox, speed)
+
+    # **New code:** If the data dictionary is empty, do not write to the CSV.
+    if not data_dict:
+        return
+
+    # Append results to the CSV
+    with open(filename, "a", newline="") as csvfile:
+        writer = csv.writer(csvfile)
+        # Construct data in desired format
+        row_data = [frame_id] + [
+            "{0}: {1}".format(class_id, data_dict[class_id]) for class_id in data_dict
+        ]
+        writer.writerow(row_data)
+
+
+# At the beginning of your script, ensure you set the header for your CSV (only once):
+def initialize_csv(filename):
+    if not os.path.isfile(filename):
+        with open(filename, "w", newline="") as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(["Frame Number", "Data"])
+
+
+csv_filename = "results.csv"
+
+
 def process_frame(
     frame,
     model,
@@ -315,6 +359,7 @@ def process_frame(
     box_annotator,
     line_annotator,
     history_dict,
+    frame_counter,
 ):
     """
     Process a given frame to detect and annotate objects based on the provided model and parameters.
@@ -388,7 +433,6 @@ def process_frame(
         get_bbox_area(detections, frame)
 
     # Step 1: Calculate speed for each tracked object
-    # Step 1: Calculate speed for each tracked object
     if GET_SPEED:
         frame, history_dict = update_and_draw(detections, frame, history_dict, HIST_LEN)
         speeds_kmh = {}
@@ -413,6 +457,15 @@ def process_frame(
             else:
                 label = f"#{detection[3]} {CLASS_NAMES_DICT[detection[2]]} {detection[1]:0.2f}"
                 labels.append(label)
+
+        initialize_csv(get_next_video_path(video_name=f"{TARGET_CSV_NAME}"))
+        save_results_to_csv(
+            frame_counter,
+            get_next_video_path(video_name=f"{TARGET_CSV_NAME}"),
+            detections,
+            speeds_kmh,
+            line_counters,
+        )
 
     else:
         # Generate labels for each detection to display the tracker ID, class name, and confidence
@@ -644,7 +697,7 @@ def main():
         with VideoSink(
             get_next_video_path(video_name="original_" + TARGET_VIDEO_NAME), info
         ) as original_sink:
-            frame_counter = 0
+            frame_counter = 1
             # Process each frame from the generator (typically frames from a video or webcam feed)
             for frame in tqdm(generator, total=info.total_frames):
                 # Save the original frame to the original video
@@ -659,6 +712,7 @@ def main():
                     box_annotator,
                     line_annotator,
                     history_dict,
+                    frame_counter,
                 )
                 # Write the processed frame to the output video
                 sink.write_frame(frame)

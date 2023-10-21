@@ -111,13 +111,16 @@ CLASS_ID = [2, 3, 5, 7]  # The class IDs to track
 SRC_DIR = os.path.dirname(os.path.abspath(__file__))  # The directory of this file
 PROJECT_ROOT_DIR = os.path.join(SRC_DIR, os.pardir)  # The root directory of the project
 VIDEO_PATH = os.path.join(
-    PROJECT_ROOT_DIR, "data", "highway3.mp4"
+    PROJECT_ROOT_DIR, "data", "BirdView.mp4"
 )  # The path to the video file
 TEST_SET_PATH = os.path.join(
     PROJECT_ROOT_DIR, "data", "MOT16-13", "img1"
 )  # The path to the test set
 TARGET_VIDEO_NAME = f"YOLOv8_({compact_datetime}).mp4"  # The name of the output video
-TARGET_CSV_NAME = f"YOLOv8_({compact_datetime}).csv"  # The name of the output CSV file
+TARGET_CSV_NAME = (
+    f"YOLOv8_({compact_datetime})_count.csv"  # The name of the output CSV file of count
+)
+TARGET_CSV_NAME2 = f"YOLOv8_({compact_datetime})_speed.csv"  # The name of the output CSV file of speed/location
 TARGET_BBOX_NAME = (
     f"YOLOv8_BB_({compact_datetime}).txt"  # The name of the output bounding box file
 )
