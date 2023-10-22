@@ -74,6 +74,8 @@ instance/
 
 # Visual Studio Code
 AoM.code-workspace
+*.code-workspace
+
 
 
 # Scrapy stuff:
