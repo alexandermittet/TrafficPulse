@@ -310,21 +310,23 @@ def save_results_to_csv(frame_counter, filename, detections, speeds_kmh, line_co
     data_dict = {}
 
     for detection in detections:
-        bbox = tuple(detection[0])  # assuming the format is (x1, y1, x2, y2)
+        bbox = tuple(detection[0])  # (x1, y1, x2, y2)
         class_id = detection[2]
         tracker_id = detection[3]
         speed = speeds_kmh.get(tracker_id, None)
+        direction_stamp = None
 
-        # Check if the detection with this tracker_id has crossed the line
-        has_crossed_line = any(
-            line_counter.has_crossed(tracker_id) for line_counter in line_counters
-        )
+        # Check which line_counter has recorded the crossing for this tracker_id
+        for line_counter in line_counters:
+            if line_counter.has_crossed(tracker_id):
+                direction_stamp = line_counter.tracker_direction.get(tracker_id)
+                break
 
         # If the object has crossed the line, then log it
-        if has_crossed_line:
-            data_dict[class_id] = (bbox, speed)
+        if direction_stamp:  # either "in" or "out"
+            data_dict[class_id] = (bbox, speed, direction_stamp)
 
-    # **New code:** If the data dictionary is empty, do not write to the CSV.
+    # If the data dictionary is empty, do not write to the CSV.
     if not data_dict:
         return
 
@@ -338,15 +340,14 @@ def save_results_to_csv(frame_counter, filename, detections, speeds_kmh, line_co
         writer.writerow(row_data)
 
 
-# At the beginning of your script, ensure you set the header for your CSV (only once):
+# At the beginning of rtge script, ensure we set the header for the CSV (only once):
 def initialize_csv(filename):
     if not os.path.isfile(filename):
         with open(filename, "w", newline="") as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(["Frame Number", "Data"])
-
-
-csv_filename = "results.csv"
+            writer.writerow(
+                ["Frame Number", "Data(class_id: ((x, y, x, y), speed, direction))"]
+            )
 
 
 def process_frame(
@@ -458,10 +459,10 @@ def process_frame(
                 label = f"#{detection[3]} {CLASS_NAMES_DICT[detection[2]]} {detection[1]:0.2f}"
                 labels.append(label)
 
-        initialize_csv(get_next_video_path(video_name=f"{TARGET_CSV_NAME}"))
+        initialize_csv(get_next_video_path(video_name=f"{TARGET_CSV_NAME2}"))
         save_results_to_csv(
             frame_counter,
-            get_next_video_path(video_name=f"{TARGET_CSV_NAME}"),
+            get_next_video_path(video_name=f"{TARGET_CSV_NAME2}"),
             detections,
             speeds_kmh,
             line_counters,
@@ -744,7 +745,8 @@ def main():
         get_next_video_path(video_name=f"line_{i+1}_{TARGET_CSV_NAME}")
         for i in range(n)
     ]  # Adjust N as needed
-    plot_multiple(filenames, INTERVAL, CLASS_MAPS)
+    speed_csv = get_next_video_path(video_name=TARGET_CSV_NAME2)
+    plot_multiple(filenames, speed_csv, INTERVAL, CLASS_MAPS)
 
     # Destroy all OpenCV windows
     cv2.destroyAllWindows()

@@ -111,7 +111,7 @@ CLASS_ID = [2, 3, 5, 7]  # The class IDs to track
 SRC_DIR = os.path.dirname(os.path.abspath(__file__))  # The directory of this file
 PROJECT_ROOT_DIR = os.path.join(SRC_DIR, os.pardir)  # The root directory of the project
 VIDEO_PATH = os.path.join(
-    PROJECT_ROOT_DIR, "data", "BirdView.mp4"
+    PROJECT_ROOT_DIR, "data", "longtest.mp4"
 )  # The path to the video file
 TEST_SET_PATH = os.path.join(
     PROJECT_ROOT_DIR, "data", "MOT16-13", "img1"
@@ -125,7 +125,7 @@ TARGET_BBOX_NAME = (
     f"YOLOv8_BB_({compact_datetime}).txt"  # The name of the output bounding box file
 )
 MODEL = os.path.join(
-    PROJECT_ROOT_DIR, "models", "yolov8x.pt"
+    PROJECT_ROOT_DIR, "models", "yolov8n.pt"
 )  # The path to the model / model name
 """ # Models:
 yolov8n.pt

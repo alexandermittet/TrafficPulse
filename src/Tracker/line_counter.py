@@ -24,6 +24,7 @@ class LineCounter:
         self.crossed_tracker_ids = (
             set()
         )  # a set to store IDs of objects that crossed the line
+        self.tracker_direction = {}  # New attribute
 
     def update(self, detections: Detections):
         """
@@ -74,8 +75,10 @@ class LineCounter:
             # Update in_count or out_count for the specific class_id
             if tracker_state:
                 self.in_count[class_id] += 1
+                self.tracker_direction[tracker_id] = "in"
             else:
                 self.out_count[class_id] += 1
+                self.tracker_direction[tracker_id] = "out"
 
             # Add the tracker_id to the set of crossed IDs
             self.crossed_tracker_ids.add(tracker_id)

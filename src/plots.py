@@ -6,12 +6,14 @@ All functions for plotting the data from the CSV file.
 # Importing libraries:
 import csv
 import ast
+import re
 import matplotlib.pyplot as plt
 import pandas as pd
+import seaborn as sns
 import numpy as np
 
 
-def plot_multiple(filenames, interval, class_emoji_mapping):
+def plot_multiple(filenames, speedcsv, interval, class_emoji_mapping):
     """
     Plot the in count and out count for each frame from multiple CSV files.
 
@@ -23,6 +25,8 @@ def plot_multiple(filenames, interval, class_emoji_mapping):
         plot_interval(filename, interval, class_emoji_mapping, live=False)
         plot_vehicle_distribution(filename, class_emoji_mapping)
         plot_net_traffic_movement(filename, class_emoji_mapping)
+    plot_average_speed_over_time(speedcsv)
+    plot_speed_distribution_by_class(speedcsv, class_emoji_mapping)
 
 
 def plot(filename):
@@ -312,3 +316,164 @@ def plot_net_traffic_movement(file_path, class_emoji_mapping):
     plt.tight_layout()
     image_path = file_path.replace(".csv", "_netmovement.png")
     plt.savefig(image_path, bbox_inches="tight")
+
+
+def plot_average_speed_over_time(file_path):
+    # Helper function to split and process lines from the CSV
+    def process_csv_line(line):
+        frame, *data_parts = line.strip().split(",")
+        all_data = ",".join(data_parts)
+
+        # Extract vehicle data from the concatenated data string
+        vehicles = all_data.split(")  ")
+        processed_data = []
+        for vehicle in vehicles:
+            if vehicle:
+                processed_data.append((frame, vehicle + ")"))
+        return processed_data
+
+    # Read the CSV file line by line and process it
+    processed_lines = []
+    with open(file_path, "r") as f:
+        next(f)  # Skip the header line
+        for line in f:
+            processed_lines.extend(process_csv_line(line))
+
+    # Convert the processed lines to a DataFrame
+    df = pd.DataFrame(
+        processed_lines,
+        columns=["Frame Number", "Data(class_id: ((x, y, x, y), speed, direction))"],
+    )
+
+    # Extract speed data from the df
+    df["Speed"] = (
+        df["Data(class_id: ((x, y, x, y), speed, direction))"]
+        .str.extract(r"\), (\d+\.\d+),")
+        .astype(float)
+    )
+
+    # Extract timestamp (Frame Number) and speed for plotting
+    speed_data = df[["Frame Number", "Speed"]].copy()
+    speed_data["Frame Number"] = speed_data["Frame Number"].astype(int)
+
+    # Calculate the rolling average speed over time (using a window size of 5 for smoothing)
+    speed_data["Rolling Avg Speed"] = speed_data["Speed"].rolling(window=5).mean()
+
+    # Plot average speed of vehicles over time
+    plt.figure(figsize=(12, 7))
+    plt.plot(
+        speed_data["Frame Number"],
+        speed_data["Rolling Avg Speed"],
+        color="green",
+        label="Rolling Avg Speed",
+    )
+    plt.scatter(
+        speed_data["Frame Number"],
+        speed_data["Speed"],
+        color="red",
+        s=10,
+        label="Individual Speeds",
+        alpha=0.5,
+    )
+    plt.title("Average Vehicle Speed Over Time")
+    plt.xlabel("Frame Number")
+    plt.ylabel("Speed (km/h)")
+    plt.legend()
+    plt.grid(True, which="both", linestyle="--", linewidth=0.5)
+    plt.tight_layout()
+    plt.savefig(file_path.replace(".csv", "_avgspeed.png"), bbox_inches="tight")
+
+
+# Mapping of class IDs to emojis
+CLASS_MAPS = {
+    0: "People",  # Person
+    1: "Cycles",  # Bicycle
+    2: "Cars",  # Car
+    3: "Motorcycle",  # Motorcycle
+    5: "Bus",  # Bus
+    7: "Trucks",  # Truck
+}
+
+
+def plot_speed_distribution_by_class(file_path, class_map):
+    """
+    Reads the CSV file, processes the data, and plots the speed distribution by detected vehicle classes.
+
+    Parameters:
+    - file_path (str): Path to the CSV file containing speed data.
+    - class_map (dict): Mapping of class IDs to class names.
+    """
+
+    # Read the CSV line by line
+    with open(file_path, "r") as file:
+        lines = file.readlines()
+
+    # Extract frame numbers and vehicle data using regex
+    frame_numbers = []
+    vehicle_infos = []
+
+    pattern = r'(\d+),(".*?")'
+    matches = re.findall(pattern, "".join(lines[1:]))
+
+    for match in matches:
+        frame_number = match[0]
+        vehicles = match[1].split('","')
+        for vehicle_info in vehicles:
+            frame_numbers.append(frame_number)
+            vehicle_infos.append(vehicle_info.strip('"'))
+
+    # Convert to DataFrame
+    data = pd.DataFrame({"Frame": frame_numbers, "Vehicle_Info": vehicle_infos})
+
+    # Function to extract vehicle information
+    def extract_vehicle_info(row):
+        pattern = r"(\d+): \(\((\d+.\d+), (\d+.\d+), (\d+.\d+), (\d+.\d+)\), (\d+.\d+), \'(\w+)\'\)"
+        matches = re.findall(pattern, row)
+        vehicles = [
+            {
+                "class_id": int(m[0]),
+                "x1": float(m[1]),
+                "y1": float(m[2]),
+                "x2": float(m[3]),
+                "y2": float(m[4]),
+                "speed": float(m[5]),
+                "direction": m[6],
+            }
+            for m in matches
+        ]
+        return vehicles
+
+    # Extract vehicle information and process data
+    data["Vehicles"] = data["Vehicle_Info"].apply(extract_vehicle_info)
+    data["Frame"] = data["Frame"].astype(int)
+    data = data.explode("Vehicles").reset_index(drop=True)
+    for col in ["class_id", "x1", "y1", "x2", "y2", "speed", "direction"]:
+        data[col] = data["Vehicles"].apply(
+            lambda x: x[col] if isinstance(x, dict) else None
+        )
+    data = data.drop(columns=["Vehicle_Info", "Vehicles"])
+    data["class_name"] = data["class_id"].map(class_map)
+    present_classes = data["class_name"].dropna().unique()
+
+    # Plot the data
+    plt.figure(figsize=(12, 6))
+    sns.boxplot(
+        data=data[data["class_name"].isin(present_classes)],
+        x="class_name",
+        y="speed",
+        hue="direction",
+        order=present_classes,
+    )
+    plt.title("Speed Distribution by Detected Vehicle Classes")
+    plt.xlabel("Vehicle Class")
+    plt.ylabel("Speed (Units)")
+    plt.legend(title="Direction")
+    plt.grid(axis="y")
+    plt.tight_layout()
+    plt.savefig(file_path.replace(".csv", "_speeddist.png"), bbox_inches="tight")
+
+
+plot_speed_distribution_by_class(
+    "/Users/marcusnsr/Desktop/AoM/runs/001/YOLOv8_(10-22_11:10:16)_speed.csv",
+    CLASS_MAPS,
+)
