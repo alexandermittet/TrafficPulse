@@ -12,9 +12,9 @@ HOME = os.getcwd()
 
 import cv2
 import csv
-import ast
-import supervision
-import matplotlib.pyplot as plt
+import math
+import time
+
 from supervision.draw.color import ColorPalette
 from supervision.geometry.dataclasses import Point
 from supervision.video.dataclasses import VideoInfo
@@ -26,14 +26,17 @@ from ultralytics import YOLO
 from Tracker.byte_tracker import BYTETracker, STrack
 from onemetric.cv.utils.iou import box_iou_batch
 from dataclasses import dataclass
+from collections import deque
 from typing import List
 from tqdm import tqdm
+from plots import *
+from speed import *
 
 
 # Using a dataclass to represent arguments for BYTETracker
 @dataclass(frozen=True)
 class BYTETrackerArgs:
-    track_thresh: float = 0.25  # Threshold for tracking
+    track_thresh: float = 0.35  # Threshold for tracking
     track_buffer: int = 30  # Buffer for tracking
     match_thresh: float = 0.8  # Matching threshold
     aspect_ratio_thresh: float = 3.0  # Aspect ratio threshold
@@ -177,6 +180,52 @@ def dectect_track_matcher(detections: Detections, tracks: List[STrack]) -> Detec
     return ids
 
 
+def grid_lines(n, m, VIDEO_PATH):
+    """
+    Generates a grid of n*m lines that span the entire frame.
+
+    Args:
+    n (int): Number of vertical lines.
+    m (int): Number of horizontal lines.
+    VIDEO_PATH (str): Path to the video file.
+
+    Returns:
+    list: List of lines where each line is represented as a tuple of two points.
+    """
+    # Get the first frame of the video
+    cap = cv2.VideoCapture(VIDEO_PATH)
+    ret, first_frame = cap.read()
+    if not ret:
+        print("Failed to read video")
+        return []
+    cap.release()
+
+    # Get the height and width of the frame
+    height, width, _ = first_frame.shape
+
+    # Calculate the spacing for vertical and horizontal lines
+    vertical_spacing = width // (n + 1)
+    horizontal_spacing = height // (m + 1)
+
+    lines = []
+
+    # Generate vertical lines
+    for i in range(1, n + 1):
+        x = i * vertical_spacing
+        start_point = (x, 0)
+        end_point = (x, height)
+        lines.append((start_point, end_point))
+
+    # Generate horizontal lines
+    for j in range(1, m + 1):
+        y = j * horizontal_spacing
+        start_point = (0, y)
+        end_point = (width, y)
+        lines.append((start_point, end_point))
+
+    return lines
+
+
 def initialize_components(USE_WEBCAM, VIDEO_PATH, MODEL, BYTETrackerArgs, lines):
     """
     Initializes components for object detection and tracking, including setting up the video source,
@@ -230,8 +279,10 @@ def initialize_components(USE_WEBCAM, VIDEO_PATH, MODEL, BYTETrackerArgs, lines)
 
     # Initialize multiple LineCounter objects for each line
     line_counters = [
-        LineCounter(start=Point(*line[0]), end=Point(*line[1])) for line in lines
+        LineCounter(start=Point(*line[0]), end=Point(*line[1]), class_ids=CLASS_ID)
+        for line in lines
     ]
+
     box_annotator = BoxAnnotator(
         color=ColorPalette(),
         thickness=2,
@@ -254,6 +305,51 @@ def initialize_components(USE_WEBCAM, VIDEO_PATH, MODEL, BYTETrackerArgs, lines)
     )
 
 
+def save_results_to_csv(frame_counter, filename, detections, speeds_kmh, line_counters):
+    frame_id = frame_counter
+    data_dict = {}
+
+    for detection in detections:
+        bbox = tuple(detection[0])  # (x1, y1, x2, y2)
+        class_id = detection[2]
+        tracker_id = detection[3]
+        speed = speeds_kmh.get(tracker_id, None)
+        direction_stamp = None
+
+        # Check which line_counter has recorded the crossing for this tracker_id
+        for line_counter in line_counters:
+            if line_counter.has_crossed(tracker_id):
+                direction_stamp = line_counter.tracker_direction.get(tracker_id)
+                break
+
+        # If the object has crossed the line, then log it
+        if direction_stamp:  # either "in" or "out"
+            data_dict[class_id] = (bbox, speed, direction_stamp)
+
+    # If the data dictionary is empty, do not write to the CSV.
+    if not data_dict:
+        return
+
+    # Append results to the CSV
+    with open(filename, "a", newline="") as csvfile:
+        writer = csv.writer(csvfile)
+        # Construct data in desired format
+        row_data = [frame_id] + [
+            "{0}: {1}".format(class_id, data_dict[class_id]) for class_id in data_dict
+        ]
+        writer.writerow(row_data)
+
+
+# At the beginning of rtge script, ensure we set the header for the CSV (only once):
+def initialize_csv(filename):
+    if not os.path.isfile(filename):
+        with open(filename, "w", newline="") as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(
+                ["Frame Number", "Data(class_id: ((x, y, x, y), speed, direction))"]
+            )
+
+
 def process_frame(
     frame,
     model,
@@ -263,6 +359,8 @@ def process_frame(
     line_counters,
     box_annotator,
     line_annotator,
+    history_dict,
+    frame_counter,
 ):
     """
     Process a given frame to detect and annotate objects based on the provided model and parameters.
@@ -293,7 +391,7 @@ def process_frame(
     10. Annotate the frame with the generated labels and lines.
     """
     # Get the detection results from the model for the given frame
-    results = model(frame)
+    results = model.predict(frame, device=DEVICE)
 
     # Extract the relevant detection attributes from the results and store in Detections object
     detections = Detections(
@@ -331,6 +429,67 @@ def process_frame(
     )
     detections.filter(mask=mask, inplace=True)
 
+    # Get the area of each detection
+    if GET_AREA:
+        get_bbox_area(detections, frame)
+
+    # Step 1: Calculate speed for each tracked object
+    if GET_SPEED:
+        frame, history_dict = update_and_draw(detections, frame, history_dict, HIST_LEN)
+        speeds_kmh = {}
+        for tracker_id in history_dict:
+            avg_speed = moving_average_speed_from_history(
+                history_dict[tracker_id], PPM, HIST_LEN - 5
+            )
+            speeds_kmh[tracker_id] = avg_speed
+
+        # Remove tracker IDs from speeds_kmh if not in history_dict
+        for tracker_id in list(speeds_kmh.keys()):
+            if tracker_id not in history_dict:
+                del speeds_kmh[tracker_id]
+
+        # Step 2: Modify labels for annotation
+        labels = []
+        for detection in detections:
+            # Only include the speed if the tracker ID is in the speeds_kmh dictionary
+            if detection[3] in speeds_kmh:
+                label = f"#{detection[3]} {CLASS_NAMES_DICT[detection[2]]} {detection[1]:0.2f} - {speeds_kmh[detection[3]]:0.2f} km/h"
+                labels.append(label)
+            else:
+                label = f"#{detection[3]} {CLASS_NAMES_DICT[detection[2]]} {detection[1]:0.2f}"
+                labels.append(label)
+
+        initialize_csv(get_next_video_path(video_name=f"{TARGET_CSV_NAME2}"))
+        save_results_to_csv(
+            frame_counter,
+            get_next_video_path(video_name=f"{TARGET_CSV_NAME2}"),
+            detections,
+            speeds_kmh,
+            line_counters,
+        )
+
+    else:
+        # Generate labels for each detection to display the tracker ID, class name, and confidence
+        labels = [
+            f"#{tracker_id} {CLASS_NAMES_DICT[class_id]} {confidence:0.2f}"
+            for _, confidence, class_id, tracker_id in detections
+        ]
+
+    # Annotate the frame with the detection boxes and associated labels
+    frame = box_annotator.annotate(frame=frame, detections=detections, labels=labels)
+    # Update each line counter with the new detections
+    for line_counter in line_counters:
+        line_counter.update(detections=detections)
+        # Annotate the frame with any additional lines
+        line_annotator.annotate(frame=frame, line_counter=line_counter)
+
+    save_counts_to_csv(line_counters)
+
+    # Return the annotated frame
+    return frame
+
+
+def get_bbox_area(detections, frame):
     # For each detection, annotate the frame with the bounding box and the area
     for i in range(len(detections.xyxy)):
         x1, y1, x2, y2 = map(int, detections.xyxy[i])
@@ -358,25 +517,6 @@ def process_frame(
         cv2.rectangle(
             frame, (x1 + padding, y1 + padding), (x2 - padding, y2 - padding), color, 4
         )
-
-    # Generate labels for each detection to display the tracker ID, class name, and confidence
-    labels = [
-        f"#{tracker_id} {CLASS_NAMES_DICT[class_id]} {confidence:0.2f}"
-        for _, confidence, class_id, tracker_id in detections
-    ]
-
-    # Annotate the frame with the detection boxes and associated labels
-    frame = box_annotator.annotate(frame=frame, detections=detections, labels=labels)
-    # Update each line counter with the new detections
-    for line_counter in line_counters:
-        line_counter.update(detections=detections)
-        # Annotate the frame with any additional lines
-        line_annotator.annotate(frame=frame, line_counter=line_counter)
-
-    save_counts_to_csv(line_counters)
-
-    # Return the annotated frame
-    return frame
 
 
 def get_next_video_path(base_path=HOME, video_name="output.mp4", force_new_run=False):
@@ -440,82 +580,6 @@ def webcam_generator(cap):
         if not ret:
             break
         yield frame
-
-
-def plot(filename):
-    """
-    Plot the in count and out count for each frame from the CSV file.
-
-    Parameters:
-    - filename (str): The path to the CSV file containing the in and out counts for each frame.
-
-    Notes:
-    - The CSV file should have the following format:
-        ID,In Count,Out Count
-        1,"{class_id: count, ...}","{class_id: count, ...}"
-        2,"{class_id: count, ...}","{class_id: count, ...}"
-        ...
-    """
-    # Dictionaries to store the data for each class ID
-    ids = []
-    in_counts = {}  # {class_id: [counts for each frame]}
-    out_counts = {}  # {class_id: [counts for each frame]}
-
-    # Read data from the CSV file
-    with open(filename, "r", newline="") as f:
-        reader = csv.reader(f)
-        next(reader)  # Skip the header row
-        for row in reader:
-            ids.append(int(row[0]))
-            in_count_dict = ast.literal_eval(row[1])
-            out_count_dict = ast.literal_eval(row[2])
-
-            for class_id, count in in_count_dict.items():
-                if class_id not in in_counts:
-                    in_counts[class_id] = []
-                in_counts[class_id].append(count)
-
-            for class_id, count in out_count_dict.items():
-                if class_id not in out_counts:
-                    out_counts[class_id] = []
-                out_counts[class_id].append(count)
-
-    # Plotting the data
-    plt.figure(figsize=(10, 6))
-
-    for class_id, counts in in_counts.items():
-        plt.plot(ids, counts, label=f"In Count (Class {class_id})", marker="o")
-
-    for class_id, counts in out_counts.items():
-        plt.plot(
-            ids,
-            counts,
-            label=f"Out Count (Class {class_id})",
-            marker="o",
-            linestyle="--",
-        )
-
-    plt.title("In Count vs. Out Count")
-    plt.xlabel("ID")
-    plt.ylabel("Count")
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
-
-    # Save the plot as an image in the same directory as the CSV file
-    image_path = filename.replace(".csv", ".png")
-    plt.savefig(image_path)
-
-
-def plot_multiple(filenames):
-    """
-    Plot the in count and out count for each frame from multiple CSV files.
-
-    Parameters:
-    - filenames (list): A list of paths to the CSV files containing the in and out counts for each frame.
-    """
-    for filename in filenames:
-        plot(filename)
 
 
 def select_lines_from_video(video_path, n):
@@ -597,11 +661,16 @@ def save_counts_to_csv(line_counters):
 
 
 def main():
+    history_dict = {}
     """
     The main function that runs the model and tracking on a video or webcam.
     """
-    n = int(input("Enter the number of lines you want to select: "))
-    lines = select_lines_from_video(VIDEO_PATH, n)
+    if not GRID_LINES:
+        n = int(input("Enter the number of lines you want to select: "))
+        lines = select_lines_from_video(VIDEO_PATH, n)
+    else:
+        n = GRID_LINES_n + GRID_LINES_m
+        lines = grid_lines(GRID_LINES_n, GRID_LINES_m, VIDEO_PATH)
 
     # Initialize required components for processing the video
     (
@@ -616,6 +685,8 @@ def main():
         CLASS_NAMES_DICT,
     ) = initialize_components(USE_WEBCAM, VIDEO_PATH, MODEL, BYTETrackerArgs, lines)
 
+    speeds_kmh = []
+
     # VideoSink helps in writing the processed frames to a new video
     with VideoSink(
         get_next_video_path(
@@ -627,6 +698,7 @@ def main():
         with VideoSink(
             get_next_video_path(video_name="original_" + TARGET_VIDEO_NAME), info
         ) as original_sink:
+            frame_counter = 1
             # Process each frame from the generator (typically frames from a video or webcam feed)
             for frame in tqdm(generator, total=info.total_frames):
                 # Save the original frame to the original video
@@ -640,9 +712,22 @@ def main():
                     line_counter,
                     box_annotator,
                     line_annotator,
+                    history_dict,
+                    frame_counter,
                 )
                 # Write the processed frame to the output video
                 sink.write_frame(frame)
+                frame_counter += 1
+                if not GRID_LINES and n == 1 and LIVE:
+                    if (
+                        frame_counter % INTERVAL == 0
+                    ):  # Check if it's time to update the plot
+                        plot_interval(
+                            get_next_video_path(video_name=f"line_1_{TARGET_CSV_NAME}"),
+                            INTERVAL,
+                            CLASS_MAPS,
+                            LIVE,
+                        )
 
                 # Display the processed frame in a window
                 cv2.imshow("Processed Frame", frame)
@@ -660,7 +745,8 @@ def main():
         get_next_video_path(video_name=f"line_{i+1}_{TARGET_CSV_NAME}")
         for i in range(n)
     ]  # Adjust N as needed
-    plot_multiple(filenames)
+    speed_csv = get_next_video_path(video_name=TARGET_CSV_NAME2)
+    plot_multiple(filenames, speed_csv, INTERVAL, CLASS_MAPS)
 
     # Destroy all OpenCV windows
     cv2.destroyAllWindows()

@@ -5,33 +5,27 @@ Constants used in multiple files.
 import os
 from datetime import datetime
 
-SRC_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_ROOT_DIR = os.path.join(SRC_DIR, os.pardir)
+# Get the current date and time in a compact format
+compact_datetime = datetime.now().strftime("%m-%d_%H:%M:%S")
 
-# Video path:
-VIDEO_PATH = os.path.join(PROJECT_ROOT_DIR, "data", "highway.mp4")
-
-# Benchmarking test set path:
-TEST_SET_PATH = os.path.join(PROJECT_ROOT_DIR, "data", "benchmark", "Bike", "img")
-
-# Create the absolute path to the model
-"""
-Models:
-yolov8n.pt
-yolov8s.pt
-yolov8m.pt
-yolov8l.pt
-yolov8x.pt
-"""
-MODEL = os.path.join(PROJECT_ROOT_DIR, "models", "yolov8n.pt")
-
-# Use webcam:
-USE_WEBCAM = False
-WEBCAM_ID = 0
-
-# Classes to track:
-CLASS_ID = [2]
-"""
+# Toggles:
+USE_WEBCAM = False  # If False, use the video file specified in VIDEO_PATH else use the webcam (set WEBCAM_ID under Constants)
+GET_AREA = False  # If True, get the area of the bounding box of each object
+GRID_LINES = (
+    False  # If True, draw grid lines on the video (set n and m under Constants)
+)
+LIVE = False  # If True, show the interval plot live
+GET_SPEED = True  # If True, calculate the speed of each object
+# Constants:
+WEBCAM_ID = 0  # The ID of the webcam to use
+GRID_LINES_n = 4  # The number of vertical grid lines
+GRID_LINES_m = 4  # The number of horizontal grid lines
+INTERVAL = 15  # The interval to plot the in and out counts
+HIST_LEN = 15  # The number of frames to plot in the histogram
+PPM = 10  # The pixels per meter (calibration)
+DEVICE = "mps"  # The device to use for inference (cpu, cuda, mps)
+CLASS_ID = [1, 2, 3, 5, 7]  # The class IDs to track
+""" Class IDs:
 0: 'person',
 1: 'bicycle',
 2: 'car',
@@ -114,7 +108,40 @@ CLASS_ID = [2]
 79: 'toothbrush'
 """
 
-compact_datetime = datetime.now().strftime("%m-%d_%H:%M:%S")
-TARGET_VIDEO_NAME = f"YOLOv8_({compact_datetime}).mp4"
-TARGET_CSV_NAME = f"YOLOv8_({compact_datetime}).csv"
-TARGET_BBOX_NAME = f"YOLOv8_BB_({compact_datetime}).txt"
+# Paths:
+SRC_DIR = os.path.dirname(os.path.abspath(__file__))  # The directory of this file
+PROJECT_ROOT_DIR = os.path.join(SRC_DIR, os.pardir)  # The root directory of the project
+VIDEO_PATH = os.path.join(
+    PROJECT_ROOT_DIR, "data", "local", "output_20231007114249_short.mp4"
+)  # The path to the video file
+TEST_SET_PATH = os.path.join(
+    PROJECT_ROOT_DIR, "data", "MOT16-13", "img1"
+)  # The path to the test set
+TARGET_VIDEO_NAME = f"YOLOv8_({compact_datetime}).mp4"  # The name of the output video
+TARGET_CSV_NAME = (
+    f"YOLOv8_({compact_datetime})_count.csv"  # The name of the output CSV file of count
+)
+TARGET_CSV_NAME2 = f"YOLOv8_({compact_datetime})_speed.csv"  # The name of the output CSV file of speed/location
+TARGET_BBOX_NAME = (
+    f"YOLOv8_BB_({compact_datetime}).txt"  # The name of the output bounding box file
+)
+MODEL = os.path.join(
+    PROJECT_ROOT_DIR, "models", "yolov8m.pt"
+)  # The path to the model / model name
+""" # Models:
+yolov8n.pt
+yolov8s.pt
+yolov8m.pt
+yolov8l.pt
+yolov8x.pt
+"""
+
+# Mapping of class IDs to emojis
+CLASS_MAPS = {
+    0: "People",  # Person
+    1: "Cycles",  # Bicycle
+    2: "Cars",  # Car
+    3: "Motorcycle",  # Motorcycle
+    5: "Bus",  # Bus
+    7: "Trucks",  # Truck
+}
