@@ -1,5 +1,7 @@
 import cv2
 import numpy as np
+from typing import List
+from typing import Dict
 
 from supervision.draw.color import Color
 from supervision.geometry.dataclasses import Point, Rect, Vector
@@ -7,7 +9,7 @@ from supervision.tools.detections import Detections
 
 
 class LineCounter:
-    def __init__(self, start: Point, end: Point):
+    def __init__(self, start: Point, end: Point, class_ids: List[int]):
         """
         Initialize a LineCounter object.
 
@@ -16,8 +18,13 @@ class LineCounter:
         """
         self.vector = Vector(start=start, end=end)
         self.tracker_state: Dict[str, bool] = {}
-        self.in_count: Dict[int, int] = {}  # Keep separate in counts for each class
-        self.out_count: Dict[int, int] = {}  # Keep separate out counts for each class
+        # Initialize in_count and out_count with zeros for all given class IDs
+        self.in_count = {class_id: 0 for class_id in class_ids}
+        self.out_count = {class_id: 0 for class_id in class_ids}
+        self.crossed_tracker_ids = (
+            set()
+        )  # a set to store IDs of objects that crossed the line
+        self.tracker_direction = {}  # New attribute
 
     def update(self, detections: Detections):
         """
@@ -25,6 +32,9 @@ class LineCounter:
 
         :param detections: Detections : The detections for which to update the counts.
         """
+        # Clear the set of crossed tracker IDs from the previous update
+        self.crossed_tracker_ids.clear()
+
         for xyxy, confidence, class_id, tracker_id in detections:
             # handle detections with no tracker_id
             if tracker_id is None:
@@ -62,11 +72,25 @@ class LineCounter:
                 continue
 
             self.tracker_state[tracker_id] = tracker_state
-            # update in_count or out_count for the specific class_id
+            # Update in_count or out_count for the specific class_id
             if tracker_state:
                 self.in_count[class_id] += 1
+                self.tracker_direction[tracker_id] = "in"
             else:
                 self.out_count[class_id] += 1
+                self.tracker_direction[tracker_id] = "out"
+
+            # Add the tracker_id to the set of crossed IDs
+            self.crossed_tracker_ids.add(tracker_id)
+
+    def has_crossed(self, tracker_id: str) -> bool:
+        """
+        Check if an object with a given tracker_id has crossed the line during the last update.
+
+        :param tracker_id: str : The ID of the tracker to check.
+        :return: bool : True if the object crossed the line, False otherwise.
+        """
+        return tracker_id in self.crossed_tracker_ids
 
 
 class LineCounterAnnotator:
