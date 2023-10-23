@@ -28,7 +28,6 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
-yolov5/ #the yolo repo
 runs/
 MOT16-13/
 MOT16-04/

@@ -391,7 +391,7 @@ def process_frame(
     10. Annotate the frame with the generated labels and lines.
     """
     # Get the detection results from the model for the given frame
-    results = model.predict(frame, device="mps")
+    results = model.predict(frame, device=DEVICE)
 
     # Extract the relevant detection attributes from the results and store in Detections object
     detections = Detections(

@@ -23,6 +23,7 @@ GRID_LINES_m = 4  # The number of horizontal grid lines
 INTERVAL = 15  # The interval to plot the in and out counts
 HIST_LEN = 15  # The number of frames to plot in the histogram
 PPM = 10  # The pixels per meter (calibration)
+DEVICE = "mps"  # The device to use for inference (cpu, cuda, mps)
 CLASS_ID = [1, 2, 3, 5, 7]  # The class IDs to track
 """ Class IDs:
 0: 'person',
