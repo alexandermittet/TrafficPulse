@@ -24,7 +24,7 @@ INTERVAL = 15  # The interval to plot the in and out counts
 HIST_LEN = 15  # The number of frames to plot in the histogram
 PPM = 10  # The pixels per meter (calibration)
 DEVICE = "mps"  # The device to use for inference (cpu, cuda, mps)
-CLASS_ID = [1, 2, 3, 5, 7]  # The class IDs to track
+CLASS_ID = [0, 1, 2, 3, 4]  # The class IDs to track
 """ Class IDs:
 0: 'person',
 1: 'bicycle',
@@ -112,7 +112,7 @@ CLASS_ID = [1, 2, 3, 5, 7]  # The class IDs to track
 SRC_DIR = os.path.dirname(os.path.abspath(__file__))  # The directory of this file
 PROJECT_ROOT_DIR = os.path.join(SRC_DIR, os.pardir)  # The root directory of the project
 VIDEO_PATH = os.path.join(
-    PROJECT_ROOT_DIR, "data", "local", "output_20231007114249_short.mp4"
+    PROJECT_ROOT_DIR, "data", "BirdView.mp4"
 )  # The path to the video file
 TEST_SET_PATH = os.path.join(
     PROJECT_ROOT_DIR, "data", "MOT16-13", "img1"
@@ -126,7 +126,7 @@ TARGET_BBOX_NAME = (
     f"YOLOv8_BB_({compact_datetime}).txt"  # The name of the output bounding box file
 )
 MODEL = os.path.join(
-    PROJECT_ROOT_DIR, "models", "yolov8m.pt"
+    PROJECT_ROOT_DIR, "models", "best.pt"
 )  # The path to the model / model name
 """ # Models:
 yolov8n.pt
@@ -138,10 +138,9 @@ yolov8x.pt
 
 # Mapping of class IDs to emojis
 CLASS_MAPS = {
-    0: "People",  # Person
-    1: "Cycles",  # Bicycle
-    2: "Cars",  # Car
-    3: "Motorcycle",  # Motorcycle
-    5: "Bus",  # Bus
-    7: "Trucks",  # Truck
+    0: "Cycles",
+    1: "Busses",
+    2: "Cars",
+    3: "Motorcycle",
+    4: "Trucks",
 }

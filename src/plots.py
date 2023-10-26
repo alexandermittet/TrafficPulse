@@ -471,9 +471,3 @@ def plot_speed_distribution_by_class(file_path, class_map):
     plt.grid(axis="y")
     plt.tight_layout()
     plt.savefig(file_path.replace(".csv", "_speeddist.png"), bbox_inches="tight")
-
-
-plot_speed_distribution_by_class(
-    "/Users/marcusnsr/Desktop/AoM/runs/001/YOLOv8_(10-22_11:10:16)_speed.csv",
-    CLASS_MAPS,
-)
