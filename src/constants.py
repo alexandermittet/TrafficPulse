@@ -144,3 +144,7 @@ CLASS_MAPS = {
     3: "Motorcycle",
     4: "Trucks",
 }
+
+import ultralytics
+
+print(ultralytics.__file__)
