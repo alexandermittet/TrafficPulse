@@ -6,8 +6,11 @@ TrafficPulse is a project focused on automating traffic data collection using Ma
 In the face of rapid urbanization, traditional traffic management methods struggle to provide real-time, accurate data essential for effective urban planning. This paper introduces TrafficPulse, a software system leveraging computer vision and the YOLOv8 model to revolutionize traffic counting in urban environments. By integrating real-time video analysis and machine learning, TrafficPulse accurately identifies and categorizes various vehicle types, offering a significant improvement over manual and sensor-based methods. The system's development, from conception to implementation, highlights the technical feasibility and economic viability of such an approach. TrafficPulse's ability to provide continuous and comprehensive data collection makes it a valuable tool for dynamic traffic management and smart city infrastructure. The project demonstrates the potential of machine learning in addressing complex urban challenges, paving the way for future innovations in intelligent transportation systems.
 
 Screenshot of model in action:
+
 ![trafficpulse examples](https://github.com/user-attachments/assets/67f3cd33-86a1-48ed-a6db-d9062ad0863c)
+
 Statistics and findings for Copenhagen traffic, field trip:
+
 ![trafficpulse stats findings](https://github.com/user-attachments/assets/a9df487a-fdcc-4703-b2c0-7ead96d7a9a7)
 
 
