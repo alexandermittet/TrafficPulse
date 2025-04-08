@@ -47,12 +47,12 @@ To maintain code quality and consistency, we adhere to the following standards:
 
 Ensure that only necessary packages are included before freezing the requirements. To manage the dependencies, use:
 
-To generate the requirements file:
-```
-pip freeze > requirements.txt
-```
-
 To install dependencies from the requirements file:
 ```
 pip install -r requirements.txt
+```
+
+If you end up installing more/less packages, update the requirements.txt using:
+```
+pip freeze > requirements.txt
 ```
